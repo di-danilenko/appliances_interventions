@@ -1,0 +1,615 @@
+---
+title: "appliances usage"
+output: html_document
+
+# make sure column names are updated
+# put all the appliances together
+# try different models to estimate effects
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("/Users/dianadanilenko/Desktop/appliances_analysis/usage")
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(meta)
+library(metafor)
+library(metadat)
+library(haven)
+library(writexl)
+library(openxlsx)
+library(dplyr)
+library(stringr)
+library(readxl)
+options(scipen = 999)
+```
+
+```{r}
+## Load datasets  for usage 
+appliancesusage <- read_xlsx("appliances_usage.xlsx", sheet = "Appliances")
+appliancesusage$z_value <- as.numeric(appliancesusage$z_value)
+appliancesusage$z_value <- ifelse(appliancesusage$effect_direction == "decrease",
+                                   -appliancesusage$z_value,
+                                   appliancesusage$z_value)
+appliancesusage$z_variance <- as.numeric(appliancesusage$z_variance)
+```
+
+
+```{r}
+# observe summary statistics
+summary(appliancesusage)
+```
+
+
+```{r}
+##dishwasher
+data_usage_dishwasher$z_value <- as.numeric(data_usage_dishwasher$z_value)
+data_usage_dishwasher$z_variance <- as.numeric(data_usage_dishwasher$z_variance)
+
+### RANDOM EFFECTS ###
+m.gen_usage_dishwasher <- metagen(data = data_usage_dishwasher,
+                                  TE = z_value,
+                                  seTE = z_variance,
+                                  studlab = authors,
+                                  sm = "ZCOR",
+                                  fixed = FALSE,
+                                  random = TRUE,
+                                  backtransf = F)
+
+## forest plot of usage
+png(file = "forestplot_dishwasher_random.png", width = 5000, height = 2000, res = 500)
+forest.meta(m.gen_usage_dishwasher,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_usage_dishwasher <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_dishwasher,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F)
+## forest plot of usage
+png(file = "forestplot_dishwasher_fixed.png", width = 5000, height = 2000, res = 500)
+forest.meta(m1.gen_usage_dishwasher,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+ 
+```
+
+
+```{r}
+##refrigerator
+### RANDOM EFFECTS ###
+m.gen_usage_refrigerator <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_refrigerator,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_refrigerator_random.png", width = 5000, height = 2200, res = 500)
+forest.meta(m.gen_usage_refrigerator,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_usage_refrigerator <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_refrigerator,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F)
+## forest plot of usage
+png(file = "forestplot_refrigerator_fixed.png", width = 5000, height = 2000, res = 500)
+forest.meta(m1.gen_usage_refrigerator,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+ 
+           
+```
+
+```{r}
+##heatpump
+### RANDOM EFFECTS ### 
+m.gen_usage_heat_pump <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_heat_pump,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+png(file = "forestplot_heatpump_random.png", width = 5000, height = 1800, res = 500)
+forest.meta(m.gen_usage_heat_pump,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ### 
+
+m1.gen_usage_heat_pump <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_heat_pump,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F)
+## forest plot of usage
+png(file = "forestplot_heat_pump_fixed.png", width = 5000, height = 2000, res = 500)
+forest.meta(m1.gen_usage_heat_pump,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+ 
+
+ 
+```
+
+
+```{r}
+##lighting
+### RANDOM EFFECTS ###
+m.gen_usage_lighting <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_lighting,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_lighting_random.png", width = 5000, height = 1500, res = 500)
+forest.meta(m.gen_usage_lighting,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+
+m1.gen_usage_lighting <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_lighting,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_lighting_fixed.png", width = 5000, height = 1500, res = 500)
+forest.meta(m1.gen_usage_lighting,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+ 
+
+```
+
+
+```{r}
+##waterheater
+### RANDOM EFFECTS ###
+m.gen_usage_water <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_water,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_water_random.png", width = 5500, height = 2600, res = 500)
+forest.meta(m.gen_usage_water,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_usage_water <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_water,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_water_fixed.png", width = 5500, height = 2600, res = 500)
+forest.meta(m1.gen_usage_water,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+```{r}
+## tv
+### RANDOM EFFECTS ###
+m.gen_usage_tv <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_tv,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_tv_random.png", width = 5500, height = 2600, res = 500)
+forest.meta(m.gen_usage_tv,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_usage_tv <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_tv,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_tv_fixed.png", width = 5500, height = 2600, res = 500)
+forest.meta(m1.gen_usage_tv,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+
+```{r}
+##airconditioning
+### RANDOM EFFECTS ###
+m.gen_usage_ac <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_ac,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_air_random.png", width = 5500, height = 3500, res = 500)
+forest.meta(m.gen_usage_ac,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_usage_ac <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_ac,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_air_fixed.png", width = 5500, height = 3500, res = 500)
+forest.meta(m1.gen_usage_ac,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+
+```{r}
+# done until here
+########Pooled effect sizes (generic inverse variance pooling method)
+
+###washing machine
+pooled_washing <- metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_washing,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+pooled_washing
+##studies 9
+## r = -0.0001
+
+###referigerator
+pooled_refrigerator <- metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_refrigerator,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+pooled_refrigerator
+##dishwasher
+pooled_dishwasher <- metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_dishwasher,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+pooled_dishwasher
+
+##heatpump
+
+pooled_heatpump <- metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_heat_pump,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+pooled_heatpump
+
+##air conditioning
+pooled_airconditioning <- metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_air,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+pooled_airconditioning
+
+## lighting
+pooled_lighting <- metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_lighting,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+pooled_lighting
+```
+
+```{r}
+##### Pooled values for appliance and intervention
+
+###Washing Machine
+## label and washing machine
+
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_washing_label,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+## reabte and washing machine
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_washing_rebate,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+```
+
+```{r}
+###Dishwasher
+## info and dihswasher
+
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_dishwasher_information,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+## rebate and dishwasher
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_dishwasher_rebate,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+```
+
+
+```{r}
+###Refrigerator
+## info and ref
+
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_refrigerator_information,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## label and ref
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_refrigerator_label,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## rebate and ref
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_refrigerator_rebate,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+```
+
+```{r}
+###heat pump
+
+##heat pump & info
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_heat_pump_information,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## feedback and heatpump
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_heat_pump_feedback,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## rebate and heatpump
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_heat_pump_rebate,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+```
+
+```{r}
+###lighting
+
+## info and light
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_lighting_information,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## feedback and lighting
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_lighting_feedback,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+```
+
+```{r}
+### air con
+
+## air & feedback
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_air_feedback,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## info and air
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_air_information,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+
+## rebate and air
+metacor(cor = r_effect_size_obsversation,
+        n = total_observations,
+        data = data_usage_air_rebate,
+        fixed =  F,
+        random = T,
+        method.tau = "REML",
+        hakn = T)
+```
+
+```{r}
+####ggplot of just the pooled effect of each of the appliances - ???
+
+cohort <- as.character(c("Washing Machine", "Refrigerator","Dishwasher", "Heat Pump","Air Conditioning", "Lighting" ))
+beta <-  as.numeric(c(-0.0001, 0.0040, -0.0007, 0.0009,-0.0,-0.0075 ))
+lower95 <- as.numeric(c(-0.0003, 0.0004, -0.0034, -0.0023,-0.0001, -0.0111))
+upper95 <- as.numeric(c(0.0001,0.0076,0.0019, 0.0042, 0.0001, -0.0039))
+population <- as.numeric(c(9,11,7,7,13,4))
+data_plot_usage <- as.data.frame(cbind(cohort, beta ,lower95,upper95,population))
+
+ggplot(data=data_plot_usage,aes(x=beta,y=cohort))+
+        geom_point(aes(size=population))+
+        geom_errorbarh(aes(xmin=lower95,xmax=upper95))+
+        theme_minimal()
+
+```
+

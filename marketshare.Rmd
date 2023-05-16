@@ -1,0 +1,502 @@
+---
+title: "marketshare"
+author: "D. Danilenko"
+date: "2023-05-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+setwd("/Users/dianadanilenko/Desktop/appliances_analysis/marketshare")
+```
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(meta)
+library(metafor)
+library(metadat)
+library(haven)
+library(writexl)
+library(openxlsx)
+library(dplyr)
+library(stringr)
+library(readxl)
+options(scipen = 999)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+appliancesmarketshare <- read_xlsx("appliances_marketshare.xlsx", sheet = "Appliances")
+appliancesmarketshare$z_value <- as.numeric(appliancesmarketshare$z_value)
+appliancesmarketshare$z_value <- ifelse(appliancesmarketshare$effect_direction == "decrease",
+                                   -appliancesmarketshare$z_value,
+                                   appliancesmarketshare$z_value)
+appliancesmarketshare$z_variance <- as.numeric(appliancesmarketshare$z_variance)
+```
+
+```{r}
+summary(appliancesmarketshare)
+```
+
+```{r}
+## Subset dataset for each appliance and intervention in marketshare
+## We want to regroup by interventions and then only arrange by appliance
+## rebate, tax_credit, subsidy, loan can be grouped into monetary ? 
+data_marketshare <- appliancesmarketshare %>% 
+              mutate(Intervention = case_when(feedback == 1 ~ "Feedback",
+                                              information == 1 ~ "Information",
+                                              label == 1 ~ "Label",
+                                              rebate == 1 ~ "Rebate",
+                                              tax_credit == 1 ~ "Tax",
+                                              subsidy == 1 ~ "Subsidy",
+                                              loan == 1 ~ "Loan",
+                                              choice_architecture == 1 ~ "Choice Architecture"))
+
+data_marketshare_washing <- data_marketshare %>% 
+                  filter(washing_machine == 1)
+
+data_marketshare_dryer <- data_marketshare %>% 
+                  filter(clothes_dryer == 1)
+
+data_marketshare_dishwasher <- data_marketshare %>% 
+                  filter(diswasher == 1)
+
+data_marketshare_refrigerator <- data_marketshare %>% 
+                  filter(refrigerator == 1)
+
+data_marketshare_heat_pump <- data_marketshare %>% 
+                  filter(heat_pump == 1)
+
+data_marketshare_lighting <- data_marketshare %>% 
+                  filter(lighting == 1)
+
+data_marketshare_water <- data_marketshare %>% 
+                  filter(water_heater == 1)
+
+data_marketshare_ac <- data_marketshare %>% 
+                  filter(ac == 1)
+
+data_marketshare_tv <- data_marketshare %>% 
+                  filter(tv == 1)
+```
+
+```{r}
+### RANDOM EFFECTS MODEL ###
+##washing machine
+m.gen_marketshare_washing <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_washing,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_washing_random.png", width = 6000, height = 3000, res = 500)
+forest.meta(m.gen_marketshare_washing,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS MODEL ###
+  
+m1.gen_marketshare_washing <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_washing,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_washing_fixed.png", width = 6000, height = 3000, res = 500)
+forest.meta(m1.gen_marketshare_washing,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")       
+```
+
+
+```{r}
+##dishwasher
+### RANDOM EFFECTS ###
+m.gen_marketshare_dishwasher <- metagen(data = data_marketshare_dishwasher,
+                                  TE = z_value,
+                                  seTE = z_variance,
+                                  studlab = authors,
+                                  sm = "ZCOR",
+                                  fixed = FALSE,
+                                  random = TRUE,
+                                  backtransf = F)
+
+## forest plot of marketshare
+png(file = "forestplot_dishwasher_random.png", width = 5000, height = 3000, res = 500)
+forest.meta(m.gen_marketshare_dishwasher,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_marketshare_dishwasher <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_dishwasher,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F)
+## forest plot of marketshare
+png(file = "forestplot_dishwasher_fixed.png", width = 5000, height = 3000, res = 500)
+forest.meta(m1.gen_marketshare_dishwasher,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+ 
+```
+
+
+```{r}
+##refrigerator
+### RANDOM EFFECTS ###
+m.gen_marketshare_refrigerator <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_refrigerator,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_refrigerator_random.png", width = 7000, height = 3500, res = 500)
+forest.meta(m.gen_marketshare_refrigerator,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_marketshare_refrigerator <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_refrigerator,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F)
+## forest plot of marketshare
+png(file = "forestplot_refrigerator_fixed.png", width = 7000, height = 3500, res = 500)
+forest.meta(m1.gen_marketshare_refrigerator,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+ 
+           
+```
+
+```{r}
+##heatpump
+### RANDOM EFFECTS ### 
+m.gen_marketshare_heat_pump <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_heat_pump,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+png(file = "forestplot_heatpump_random.png", width = 5000, height = 1800, res = 500)
+forest.meta(m.gen_marketshare_heat_pump,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ### 
+
+m1.gen_marketshare_heat_pump <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_heat_pump,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F)
+## forest plot of marketshare
+png(file = "forestplot_heat_pump_fixed.png", width = 5000, height = 2000, res = 500)
+forest.meta(m1.gen_marketshare_heat_pump,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+ 
+
+ 
+```
+
+
+```{r}
+##lighting
+### RANDOM EFFECTS ###
+m.gen_marketshare_lighting <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_lighting,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_lighting_random.png", width = 7000, height = 3500, res = 500)
+forest.meta(m.gen_marketshare_lighting,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+
+m1.gen_marketshare_lighting <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_lighting,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_lighting_fixed.png", width = 7000, height = 3500, res = 500)
+forest.meta(m1.gen_marketshare_lighting,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+ 
+
+```
+
+
+```{r}
+##waterheater
+### RANDOM EFFECTS ###
+m.gen_marketshare_water <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_water,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_water_random.png", width = 5500, height = 4500, res = 500)
+forest.meta(m.gen_marketshare_water,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_marketshare_water <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_water,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_water_fixed.png", width = 5500, height = 4500, res = 500)
+forest.meta(m1.gen_marketshare_water,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+```{r}
+## tv
+### RANDOM EFFECTS ###
+m.gen_marketshare_tv <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_tv,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_tv_random.png", width = 5500, height = 2600, res = 500)
+forest.meta(m.gen_marketshare_tv,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_marketshare_tv <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_tv,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_tv_fixed.png", width = 5500, height = 2600, res = 500)
+forest.meta(m1.gen_marketshare_tv,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+
+```{r}
+##airconditioning
+### RANDOM EFFECTS ###
+m.gen_marketshare_ac <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_ac,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_air_random.png", width = 5500, height = 3000, res = 500)
+forest.meta(m.gen_marketshare_ac,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_marketshare_ac <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_ac,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_air_fixed.png", width = 5500, height = 3000, res = 500)
+forest.meta(m1.gen_marketshare_ac,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+```{r}
+## dryer
+### RANDOM EFFECTS ###
+m.gen_marketshare_dryer <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_dryer,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_dryer_random.png", width = 5500, height = 2600, res = 500)
+forest.meta(m.gen_marketshare_dryer,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
+### FIXED EFFECTS ###
+m1.gen_marketshare_dryer <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_marketshare_dryer,
+                 studlab = authors,
+                 sm = "ZCOR",
+                 fixed = TRUE,
+                 random = FALSE,
+                 backtransf = F,
+                 )
+
+## forest plot of marketshare
+
+png(file = "forestplot_dryer_fixed.png", width = 5500, height = 2600, res = 500)
+forest.meta(m1.gen_marketshare_dryer,
+           leftcols = c("authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+```
+
+
+
+
+
+
