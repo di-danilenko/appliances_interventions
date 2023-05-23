@@ -1,0 +1,76 @@
+---
+title: "summary_stats"
+author: "D. Danilenko"
+date: "2023-05-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(meta)
+library(metafor)
+library(metadat)
+library(haven)
+library(writexl)
+library(openxlsx)
+library(dplyr)
+library(stringr)
+library(readxl)
+library(summarytools)
+library(shiny)
+```
+
+```{r}
+dfinc <- data_purchase
+```
+
+```{r}
+################DESCRIPTIVE STATISTICS##################################
+outputPath <- c("/Users/dianadanilenko/Desktop/appliances_interventions")
+short_summ    <- c("appliance",
+                   "intervention",
+                   "country",
+                   "total_sample_size",
+                   "statistical_technique",
+                   "study_design",
+                   "incentive_follow_through",
+                   "experimental_setting",
+                   "participant_type"
+                   )
+
+sumVarsCatego <- c(
+  "aware_of_study",
+  "opt_in",
+  "randomisation_dummy",
+  "outOfSampleBias",
+  "reportingBiases",
+  "year_publication",
+  "year_data_study",
+  "study_ID",
+  "controls energy prices",
+  "controls environmental attitudes",
+  "controls demographics")
+
+sumvarsNum <- c("percent_change2",
+                "z_value",
+                "z_variance",
+                 "z_value_obs",
+                "z_variance_obs")
+
+sumVars <- c(short_summ,sumVarsCatego, sumvarsNum)
+
+# FREQUENCY TABLES AND DISTRIBUTIONS
+
+freq(select(dfinc, all_of(short_summ)), cumul = FALSE)
+
+dfinc %>% select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid")  %>% 
+  print(file = paste0(outputPath, "summarystatistics_purchase.html"))
+rmarkdown::render(paste0(outputPath, "summarystatistics_purchase.html"), output_file = paste0(outputPath, "summarystatistics_purchase.doc"))
+```
+
