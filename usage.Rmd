@@ -30,13 +30,79 @@ options(scipen = 999)
 ```{r}
 ## Load datasets  for usage 
 appliancesusage <- read_xlsx("appliances_usage.xlsx", sheet = "Appliances")
-appliancesusage$z_value <- as.numeric(appliancesusage$z_value)
+columns <- c("z_value", "z_variance","year_data_study","coefficient", "coefficient_se","p_value", "control_mean","control_sample_size","control_sd","treated_mean","treatment_sample_size","treated_sd","total_observations", "diff_mean","pooled_sd","monetary_incentive_size","monetary_incentive_relative","label_monetary_size","label_consumption_size","d_value")
+appliancesusage[columns] <- lapply(appliancesusage[columns], as.numeric)
 appliancesusage$z_value <- ifelse(appliancesusage$effect_direction == "decrease",
                                    -appliancesusage$z_value,
                                    appliancesusage$z_value)
-appliancesusage$z_variance <- as.numeric(appliancesusage$z_variance)
 ```
-
+```{r}
+appliancesusage$statistical_technique <- ifelse(
+  grepl("logit", appliancesusage$statistical_technique, ignore.case = TRUE),
+  "logit",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("probit", appliancesusage$statistical_technique, ignore.case = TRUE),
+  "probit",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("binomial", appliancesusage$statistical_technique, ignore.case = TRUE),
+  "linear probability model",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("ITT", appliancesusage$statistical_technique, ignore.case = TRUE),
+  "logit",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("IV", appliancesusage$statistical_technique, ignore.case = FALSE),
+  "logit",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("OLS", appliancesusage$statistical_technique, ignore.case = FALSE),
+  "linear probability model",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("matching", appliancesusage$statistical_technique, ignore.case = FALSE),
+  "linear probability model",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("2SLS", appliancesusage$statistical_technique, ignore.case = FALSE),
+  "linear probability model",
+  appliancesusage$statistical_technique
+)
+appliancesusage$statistical_technique <- ifelse(
+  grepl("squares", appliancesusage$statistical_technique, ignore.case = TRUE),
+  "linear probability model",
+  appliancesusage$statistical_technique
+)
+appliancesusage$experimental_setting <- ifelse(
+  appliancesusage$experimental_setting %in% c("retailer", "sales agent"),
+  "retailer",
+  appliancesusage$experimental_setting
+)
+appliancesusage$experimental_setting <- ifelse(
+  grepl("pre-record", appliancesusage$experimental_setting, ignore.case = TRUE),
+  "retailer",
+  appliancesusage$experimental_setting
+)
+appliancesusage$country <- ifelse(
+  grepl(",", appliancesusage$country, ignore.case = TRUE),
+  "multiple",
+  appliancesusage$country
+)
+appliancesusage$participant_type <- ifelse(
+  appliancesusage$participant_type %in% c("homeowners", "residents"),
+  appliancesusage$participant_type,
+  "unspecified"
+)
+```
 
 ```{r}
 # observe summary statistics
@@ -45,10 +111,33 @@ summary(appliancesusage)
 
 
 ```{r}
-##dishwasher
-data_usage_dishwasher$z_value <- as.numeric(data_usage_dishwasher$z_value)
-data_usage_dishwasher$z_variance <- as.numeric(data_usage_dishwasher$z_variance)
+appliancesusage$intervention <- with(appliancesusage, case_when(
+  feedback == 1 ~ "Feedback",
+  information == 1 ~ "Information",
+  label == 1 ~ "Label",
+  rebate == 1 ~ "Rebate",
+  tax_credit == 1 ~ "Tax",
+  subsidy == 1 ~ "Subsidy",
+  loan == 1 ~ "Loan",
+  choice_architecture == 1 ~ "Choice Architecture",
+  TRUE ~ NA_character_
+))
 
+appliancesusage$appliance <- with(appliancesusage, case_when(
+  tv == 1 ~ "TV",
+  ac == 1 ~ "Air-Conditioner",
+  refrigerator == 1 ~ "Refrigerator",
+  diswasher == 1 ~ "Dishwasher",
+  washing_machine == 1 ~ "Washing Machine",
+  clothes_dryer == 1 ~ "Clothes Dryer",
+  heat_pump == 1 ~ "Heat Pump",
+  lighting == 1 ~ "Lighting",
+  water_heater == 1 ~ "Water Heater",
+  TRUE ~ NA_character_
+))
+```
+```{r}
+##dishwasher
 ### RANDOM EFFECTS ###
 m.gen_usage_dishwasher <- metagen(data = data_usage_dishwasher,
                                   TE = z_value,
@@ -85,8 +174,6 @@ forest.meta(m1.gen_usage_dishwasher,
            col.random = "Red",
            xlab = "Effect Sizes",
            col.square = "Blue")
-
- 
 ```
 
 

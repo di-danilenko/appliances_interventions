@@ -559,6 +559,28 @@ forest.meta(m1.gen_purchase_dryer,
            col.square = "Blue")
 ```
 
+```{r}
+### MULTI-LEVEL MODEL ###
+# convert categorical variables to numeric
+# discuss the variables to include
+
+# Step 1: Create a meta-analysis model
+meta_model <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
+
+# Step 2: Fit the meta-analysis model
+meta_result <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
+
+# Step 3: Inspect the meta-analysis results
+summary(meta_result)
+
+# Step 4: Explore heterogeneity
+forest(meta_result)
+
+# Step 5: Conduct subgroup analyses or meta-regression (if applicable)
+# Assume you have an additional predictor variable named 'predictor'
+meta_model <- rma(z_value, z_variance, mods = ~ (appliance | intervention) , data = data_purchase, method = "REML")
+```
+
 
 
 

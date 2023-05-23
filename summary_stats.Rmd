@@ -26,7 +26,10 @@ library(shiny)
 ```
 
 ```{r}
-dfinc <- data_purchase
+#dfinc <- data_purchase
+dfinc1 <- appliancesusage
+#dfinc2 <- data_marketshare
+#dfinc3 <- data_wtp
 ```
 
 ```{r}
@@ -56,7 +59,7 @@ sumVarsCatego <- c(
   "controls environmental attitudes",
   "controls demographics")
 
-sumvarsNum <- c("percent_change2",
+sumvarsNum <- c("percent_change",
                 "z_value",
                 "z_variance",
                  "z_value_obs",
@@ -64,13 +67,25 @@ sumvarsNum <- c("percent_change2",
 
 sumVars <- c(short_summ,sumVarsCatego, sumvarsNum)
 
-# FREQUENCY TABLES AND DISTRIBUTIONS
+```
 
+
+```{r}
 freq(select(dfinc, all_of(short_summ)), cumul = FALSE)
 
 dfinc %>% select(all_of(sumVars)) %>% 
   dfSummary(graph.col = T, style = "grid")  %>% 
   print(file = paste0(outputPath, "summarystatistics_purchase.html"))
 rmarkdown::render(paste0(outputPath, "summarystatistics_purchase.html"), output_file = paste0(outputPath, "summarystatistics_purchase.doc"))
+```
+
+
+```{r}
+freq(select(dfinc1, all_of(short_summ)), cumul = FALSE)
+
+dfinc1 %>% select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid")  %>% 
+  print(file = paste0(outputPath, "summarystatistics_usage.html"))
+rmarkdown::render(paste0(outputPath, "summarystatistics_usage.html"), output_file = paste0(outputPath, "summarystatistics_usage.doc"))
 ```
 
