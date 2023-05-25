@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_analysis/purchaseprobability")
+setwd("C:/Users/khat/Documents/GitHub/appliances_interventions")
 ```
 
 
@@ -105,6 +105,7 @@ appliancespurchase$intervention <- with(appliancespurchase, case_when(
   choice_architecture == 1 ~ "Choice Architecture",
   TRUE ~ NA_character_
 ))
+appliancespurchase$intervention <- as.factor(appliancespurchase$intervention)
 
 appliancespurchase$appliance <- with(appliancespurchase, case_when(
   tv == 1 ~ "TV",
@@ -118,6 +119,7 @@ appliancespurchase$appliance <- with(appliancespurchase, case_when(
   water_heater == 1 ~ "Water Heater",
   TRUE ~ NA_character_
 ))
+appliancespurchase$appliance <- as.factor(appliancespurchase$appliance)
 
 data_purchase <- appliancespurchase
 
@@ -565,10 +567,13 @@ forest.meta(m1.gen_purchase_dryer,
 # discuss the variables to include
 
 # Step 1: Create a meta-analysis model
-meta_model <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
+meta_model <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
 
 # Step 2: Fit the meta-analysis model
 meta_result <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
+
+meta_result<-rma.mv(z_value, z_variance, mods = ~  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = appliancespurchase, method = "REML")
 
 # Step 3: Inspect the meta-analysis results
 summary(meta_result)
@@ -578,7 +583,7 @@ forest(meta_result)
 
 # Step 5: Conduct subgroup analyses or meta-regression (if applicable)
 # Assume you have an additional predictor variable named 'predictor'
-meta_model <- rma(z_value, z_variance, mods = ~ (appliance | intervention) , data = data_purchase, method = "REML")
+meta_model <- rma(z_value, z_variance, mods = ~ appliance +0 , data = data_purchase, method = "REML")
 ```
 
 
