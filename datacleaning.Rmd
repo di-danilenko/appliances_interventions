@@ -1,0 +1,242 @@
+---
+title: "data_cleaning"
+output: html_document
+date: "2023-05-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(meta)
+library(metafor)
+library(metadat)
+library(haven)
+library(writexl)
+library(openxlsx)
+library(dplyr)
+library(stringr)
+library(readxl)
+options(scipen = 999)
+```
+
+```{r}
+# Create a list of file names
+file_names <- c("appliances_purchase.xlsx", "appliances_wtp.xlsx", "appliances_usage.xlsx", "appliances_marketshare.xlsx")
+
+# Initialize an empty list to store the data frames
+data_frames <- list()
+
+# Read the "Appliances" sheet from each file and store the data frame in the list
+for (file in file_names) {
+  df <- read_excel(file, sheet = "Appliances")
+  
+  # Convert all columns to most sensible type
+  df$page <- as.character(df$page)
+  df$coefficient <- as.numeric(df$coefficient)
+  df$coefficient_se <- as.numeric(df$coefficient_se)
+  df$total_sample_size <- as.numeric(df$total_sample_size)
+  df$significance_bound <- as.factor(df$significance_bound)
+  df$aware_of_study <- as.factor(df$aware_of_study)
+  df$study_design <- as.factor(df$study_design)
+  df$randomisation_dummy <- as.factor(df$randomisation_dummy)
+  df$incentive_follow_through <- as.factor(df$incentive_follow_through)
+  df$experimental_setting <- as.factor(df$experimental_setting)
+  df$participant_type <- as.factor(df$participant_type)
+  df$opt_in <- as.factor(df$opt_in)
+  df$outOfSampleBias <- as.factor(df$outOfSampleBias)
+  df$reportingBiases <- as.factor(df$reportingBiases)
+  df$study_ID <- as.factor(df$study_ID)
+  df$`controls energy prices` <- as.factor(df$`controls energy prices`)
+  df$`controls environmental attitudes` <- as.factor(df$`controls environmental attitudes`)
+  df$`controls demographics` <- as.factor(df$`controls demographics`)
+  
+  data_frames <- append(data_frames, list(df))
+}
+
+# Combine all data frames into one
+appliances <- data.frame()
+appliances <- bind_rows(data_frames)
+```
+
+```{r}
+columns <- c("z_value", "z_variance","year_data_study","p_value","control_mean","control_sample_size","control_sd","treated_mean","treatment_sample_size","treated_sd","total_observations", "diff_mean","pooled_sd","monetary_incentive_size","monetary_incentive_relative","label_monetary_size","label_consumption_size","d_value")
+appliances[columns] <- lapply(appliances[columns], as.numeric)
+appliances$z_value <- ifelse(appliances$effect_direction == "decrease",
+                                   -appliances$z_value,
+                                   appliances$z_value)
+appliances$t_stat <- ifelse(appliances$effect_direction == "decrease",
+                                   -appliances$t_stat,
+                                   appliances$t_stat)
+appliances$r_value <- ifelse(appliances$effect_direction == "decrease",
+                                   -appliances$r_value,
+                                   appliances$r_value)
+```
+
+```{r}
+# clean country field
+
+# List of OECD countries
+oecd_countries <- c(
+  "Australia", "Austria", "Belgium", "Canada", "Chile", "Czech Republic",
+  "Denmark", "Estonia", "Finland", "France", "Germany", "Greece", "Hungary",
+  "Iceland", "Ireland", "Israel", "Italy", "Japan", "South Korea", "Latvia",
+  "Lithuania", "Luxembourg", "Mexico", "Netherlands", "New Zealand", "Norway",
+  "Poland", "Portugal", "Slovak Republic", "Slovenia", "Spain", "Sweden",
+  "Switzerland", "Turkey", "United Kingdom", "United States"
+)
+
+# List of LMIC countries
+lmic_countries <- c(
+  "Afghanistan", "Bangladesh", "Bolivia", "Cambodia", "Ethiopia", "Ghana",
+  "India", "Indonesia", "Kenya", "Nigeria", "Pakistan", "Peru", "Philippines",
+  "Rwanda", "Tanzania", "Uganda", "Vietnam", "Zambia", "Zimbabwe"
+)
+
+appliances$country <- ifelse(
+  grepl(",", appliances$country, ignore.case = TRUE),
+  "cross-country study",
+  appliances$country
+)
+unique_countries <- unique(appliances$country)
+get_continent <- function(country) {
+  if (country %in% c("Australia")) {
+    return("Oceania")
+  } else if (country %in% c("China", "India", "Indonesia", "Japan", "South Korea", "Lebanon", "Pakistan", "Singapore")) {
+    return("Asia")
+  } else if (country %in% c("France", "Germany", "Italy", "Norway", "Portugal", "Spain", "Switzerland", "UK", "Greece", "Ireland", "Poland", "Romania", "Sweden")) {
+    return("Europe")
+  } else if (country %in% c("Kenya", "Ghana")) {
+    return("Africa")
+  } else if (country %in% c("Canada", "Mexico", "US")) {
+    return("America")
+  } else {
+    return("cross-country study")
+  }
+}
+
+# Apply the categorization function to create the continent column
+appliances$continent <- sapply(appliances$country, get_continent)
+
+```
+
+```{r}
+# clean statistical technique field
+appliances$statistical_technique <- ifelse(
+  grepl("logit", appliances$statistical_technique, ignore.case = TRUE),
+  "logit",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("probit", appliances$statistical_technique, ignore.case = TRUE),
+  "probit",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("binomial", appliances$statistical_technique, ignore.case = TRUE),
+  "linear probability model",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("ITT", appliances$statistical_technique, ignore.case = TRUE),
+  "logit",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("tobit", appliances$statistical_technique, ignore.case = TRUE),
+  "other",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("ANOVA", appliances$statistical_technique, ignore.case = TRUE),
+  "other",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("matching", appliances$statistical_technique, ignore.case = TRUE),
+  "other",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("2SLS", appliances$statistical_technique, ignore.case = TRUE),
+  "2SLS/OLS/WLS",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("OLS", appliances$statistical_technique, ignore.case = TRUE),
+  "2SLS/OLS/WLS",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("WLS", appliances$statistical_technique, ignore.case = TRUE),
+  "2SLS/OLS/WLS",
+  appliances$statistical_technique
+)
+appliances$statistical_technique <- ifelse(
+  grepl("IV", appliances$statistical_technique, ignore.case = FALSE),
+  "2SLS/OLS/WLS",
+  appliances$statistical_technique
+)
+unique_statts <- unique(appliances$statistical_technique)
+# other - tobit, ANOVA, coarsened exact matching; IV + 2SLS + OLS + WLS
+```
+
+```{r}
+appliances$experimental_setting <- ifelse(
+  appliances$experimental_setting %in% c("retailer", "sales agent"),
+  "retailer",
+  appliances$experimental_setting
+)
+appliances$experimental_setting <- ifelse(
+  grepl("pre-record", appliances$experimental_setting, ignore.case = TRUE),
+  "retailer",
+  appliances$experimental_setting
+)
+
+appliances$participant_type <- ifelse(
+  appliances$participant_type %in% c("homeowners", "residents"),
+  appliances$participant_type,
+  "unspecified"
+)
+```
+
+```{r}
+summary(appliances)
+```
+
+```{r}
+appliances$intervention <- with(appliances, case_when(
+  feedback == 1 ~ "Feedback",
+  information == 1 ~ "Information",
+  label == 1 ~ "Label",
+  rebate == 1 ~ "Rebate",
+  tax_credit == 1 ~ "Tax",
+  subsidy == 1 ~ "Subsidy",
+  loan == 1 ~ "Loan",
+  choice_architecture == 1 ~ "Choice Architecture",
+  TRUE ~ NA_character_
+))
+appliances$intervention <- as.factor(appliances$intervention)
+
+appliances$appliance <- with(appliances, case_when(
+  tv == 1 ~ "TV",
+  ac == 1 ~ "Air-Conditioner",
+  refrigerator == 1 ~ "Refrigerator",
+  dishwasher == 1 ~ "Dishwasher",
+  washing_machine == 1 ~ "Washing Machine",
+  clothes_dryer == 1 ~ "Clothes Dryer",
+  heat_pump == 1 ~ "Heat Pump",
+  lighting == 1 ~ "Lighting",
+  water_heater == 1 ~ "Water Heater",
+  TRUE ~ NA_character_
+))
+appliances$appliance <- as.factor(appliances$appliance)
+```
+
+
+
+
+
