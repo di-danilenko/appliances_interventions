@@ -41,18 +41,19 @@ for (file in file_names) {
   df$total_sample_size <- as.numeric(df$total_sample_size)
   df$significance_bound <- as.factor(df$significance_bound)
   df$aware_of_study <- as.factor(df$aware_of_study)
-  df$study_design <- as.factor(df$study_design)
+  df$study_design <- as.character(df$study_design)
   df$randomisation_dummy <- as.factor(df$randomisation_dummy)
   df$incentive_follow_through <- as.factor(df$incentive_follow_through)
-  df$experimental_setting <- as.factor(df$experimental_setting)
-  df$participant_type <- as.factor(df$participant_type)
+  df$experimental_setting <- as.character(df$experimental_setting)
+  df$participant_type <- as.character(df$participant_type)
   df$opt_in <- as.factor(df$opt_in)
   df$outOfSampleBias <- as.factor(df$outOfSampleBias)
   df$reportingBiases <- as.factor(df$reportingBiases)
-  df$study_ID <- as.factor(df$study_ID)
+  df$study_ID <- as.character(df$study_ID)
   df$`controls energy prices` <- as.factor(df$`controls energy prices`)
   df$`controls environmental attitudes` <- as.factor(df$`controls environmental attitudes`)
   df$`controls demographics` <- as.factor(df$`controls demographics`)
+  df$percent_change <- as.numeric(df$percent_change)
   
   data_frames <- append(data_frames, list(df))
 }
@@ -112,7 +113,7 @@ get_continent <- function(country) {
   } else if (country %in% c("Kenya", "Ghana")) {
     return("Africa")
   } else if (country %in% c("Canada", "Mexico", "US")) {
-    return("America")
+    return("North and Central America")
   } else {
     return("cross-country study")
   }
@@ -120,6 +121,7 @@ get_continent <- function(country) {
 
 # Apply the categorization function to create the continent column
 appliances$continent <- sapply(appliances$country, get_continent)
+appliances$continent <- as.factor(appliances$continent)
 
 ```
 
@@ -171,7 +173,7 @@ appliances$statistical_technique <- ifelse(
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
-  grepl("WLS", appliances$statistical_technique, ignore.case = TRUE),
+  grepl("squares", appliances$statistical_technique, ignore.case = TRUE),
   "2SLS/OLS/WLS",
   appliances$statistical_technique
 )
@@ -180,6 +182,7 @@ appliances$statistical_technique <- ifelse(
   "2SLS/OLS/WLS",
   appliances$statistical_technique
 )
+appliances$statistical_technique <- as.factor(appliances$statistical_technique)
 unique_statts <- unique(appliances$statistical_technique)
 # other - tobit, ANOVA, coarsened exact matching; IV + 2SLS + OLS + WLS
 ```
@@ -195,16 +198,21 @@ appliances$experimental_setting <- ifelse(
   "retailer",
   appliances$experimental_setting
 )
+appliances$experimental_setting <- as.factor(appliances$experimental_setting)
 
 appliances$participant_type <- ifelse(
   appliances$participant_type %in% c("homeowners", "residents"),
   appliances$participant_type,
   "unspecified"
 )
-```
+appliances$participant_type <- as.factor(appliances$participant_type)
 
-```{r}
-summary(appliances)
+appliances$study_design <- ifelse(
+  grepl("choice", appliances$study_design, ignore.case = TRUE),
+  "quasi-experimental",
+  appliances$study_design
+)
+appliances$study_design <- as.factor(appliances$study_design)
 ```
 
 ```{r}

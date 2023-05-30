@@ -26,24 +26,26 @@ library(shiny)
 ```
 
 ```{r}
-#dfinc <- data_purchase
-dfinc1 <- appliancesusage
+dfinc <- data_purchase
+#dfinc1 <- data_usage
 #dfinc2 <- data_marketshare
 #dfinc3 <- data_wtp
+dfinc4 <- appliances
 ```
 
 ```{r}
 ################DESCRIPTIVE STATISTICS##################################
-outputPath <- c("/Users/dianadanilenko/Desktop/appliances_interventions")
+outputPath <- c("/Users/dand/Documents/GitHub/appliances_interventions")
 short_summ    <- c("appliance",
                    "intervention",
-                   "country",
+                   "continent",
                    "total_sample_size",
                    "statistical_technique",
                    "study_design",
                    "incentive_follow_through",
                    "experimental_setting",
-                   "participant_type"
+                   "participant_type",
+                   "study_ID"
                    )
 
 sumVarsCatego <- c(
@@ -54,7 +56,6 @@ sumVarsCatego <- c(
   "reportingBiases",
   "year_publication",
   "year_data_study",
-  "study_ID",
   "controls energy prices",
   "controls environmental attitudes",
   "controls demographics")

@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/khat/Documents/GitHub/appliances_interventions")
+setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
 ```
 
 
@@ -32,97 +32,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-appliancespurchase <- read_xlsx("appliances_purchase.xlsx", sheet = "Appliances")
-columns <- c("z_value", "z_variance","year_data_study","coefficient", "coefficient_se","p_value", "control_mean","control_sample_size","control_sd","treated_mean","treatment_sample_size","treated_sd","total_observations", "diff_mean","pooled_sd","monetary_incentive_size","monetary_incentive_relative","label_monetary_size","label_consumption_size","d_value")
-appliancespurchase[columns] <- lapply(appliancespurchase[columns], as.numeric)
-appliancespurchase$z_value <- ifelse(appliancespurchase$effect_direction == "decrease",
-                                   -appliancespurchase$z_value,
-                                   appliancespurchase$z_value)
-appliancespurchase$t_stat <- ifelse(appliancespurchase$effect_direction == "decrease",
-                                   -appliancespurchase$t_stat,
-                                   appliancespurchase$t_stat)
-appliancespurchase$r_value <- ifelse(appliancespurchase$effect_direction == "decrease",
-                                   -appliancespurchase$r_value,
-                                   appliancespurchase$r_value)
+data_purchase <- data.frame()
+# filter to a needed dependent variable
+data_purchase <- appliances %>% 
+                  filter(dep_variable_purchase_category == "purschase (probability) of efficient appliance")
+# exclude the outliers
+data_purchase <- data_purchase %>% 
+                  filter(z_value < 0.5 & z_value > -0.5 )
 ```
 
 ```{r}
-appliancespurchase$statistical_technique <- ifelse(
-  grepl("logit", appliancespurchase$statistical_technique, ignore.case = TRUE),
-  "logit",
-  appliancespurchase$statistical_technique
-)
-appliancespurchase$statistical_technique <- ifelse(
-  grepl("probit", appliancespurchase$statistical_technique, ignore.case = TRUE),
-  "probit",
-  appliancespurchase$statistical_technique
-)
-appliancespurchase$statistical_technique <- ifelse(
-  grepl("binomial", appliancespurchase$statistical_technique, ignore.case = TRUE),
-  "linear probability model",
-  appliancespurchase$statistical_technique
-)
-appliancespurchase$statistical_technique <- ifelse(
-  grepl("ITT", appliancespurchase$statistical_technique, ignore.case = TRUE),
-  "logit",
-  appliancespurchase$statistical_technique
-)
-appliancespurchase$experimental_setting <- ifelse(
-  appliancespurchase$experimental_setting %in% c("retailer", "sales agent"),
-  "retailer",
-  appliancespurchase$experimental_setting
-)
-appliancespurchase$experimental_setting <- ifelse(
-  grepl("pre-record", appliancespurchase$experimental_setting, ignore.case = TRUE),
-  "retailer",
-  appliancespurchase$experimental_setting
-)
-appliancespurchase$country <- ifelse(
-  grepl(",", appliancespurchase$country, ignore.case = TRUE),
-  "multiple",
-  appliancespurchase$country
-)
-appliancespurchase$participant_type <- ifelse(
-  appliancespurchase$participant_type %in% c("homeowners", "residents"),
-  appliancespurchase$participant_type,
-  "unspecified"
-)
-```
-
-```{r}
-summary(appliancespurchase)
-```
-
-```{r}
-appliancespurchase$intervention <- with(appliancespurchase, case_when(
-  feedback == 1 ~ "Feedback",
-  information == 1 ~ "Information",
-  label == 1 ~ "Label",
-  rebate == 1 ~ "Rebate",
-  tax_credit == 1 ~ "Tax",
-  subsidy == 1 ~ "Subsidy",
-  loan == 1 ~ "Loan",
-  choice_architecture == 1 ~ "Choice Architecture",
-  TRUE ~ NA_character_
-))
-appliancespurchase$intervention <- as.factor(appliancespurchase$intervention)
-
-appliancespurchase$appliance <- with(appliancespurchase, case_when(
-  tv == 1 ~ "TV",
-  ac == 1 ~ "Air-Conditioner",
-  refrigerator == 1 ~ "Refrigerator",
-  dishwasher == 1 ~ "Dishwasher",
-  washing_machine == 1 ~ "Washing Machine",
-  clothes_dryer == 1 ~ "Clothes Dryer",
-  heat_pump == 1 ~ "Heat Pump",
-  lighting == 1 ~ "Lighting",
-  water_heater == 1 ~ "Water Heater",
-  TRUE ~ NA_character_
-))
-appliancespurchase$appliance <- as.factor(appliancespurchase$appliance)
-
-data_purchase <- appliancespurchase
-
 data_purchase_washing <- data_purchase %>% 
                   filter(washing_machine == 1)
 
