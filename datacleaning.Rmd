@@ -123,6 +123,9 @@ get_continent <- function(country) {
 appliances$continent <- sapply(appliances$country, get_continent)
 appliances$continent <- as.factor(appliances$continent)
 
+appliances$oecd <- ifelse(appliances$country %in% oecd_countries, "OECD country", "non-OECD country")
+appliances$lmic <- ifelse(appliances$country %in% lmic_countries, "LMIC", "non-LMIC")
+
 ```
 
 ```{r}
@@ -214,6 +217,15 @@ appliances$study_design <- ifelse(
 )
 appliances$study_design <- as.factor(appliances$study_design)
 ```
+
+```{r}
+appliances$year_data_study <- ifelse(
+  is.na(appliances$year_data_study), # or how do we check for NA
+  appliances$year_publication,
+  appliances$year_data_study
+)
+```
+
 
 ```{r}
 appliances$intervention <- with(appliances, case_when(
