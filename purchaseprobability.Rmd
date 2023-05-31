@@ -493,7 +493,7 @@ meta_model4 <- rma(z_value, z_variance, data = data_purchase, method = "REML", m
 
 # Step 2: Fit the meta-analysis model
 # what does this one do
-meta_result <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
+# meta_result <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
 
 meta_result3 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
@@ -504,7 +504,14 @@ meta_result1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0,
 meta_result2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "FE")
 # make graphs from this
-
+summary(meta_model1)
+summary(meta_result1)
+summary(meta_model2)
+summary(meta_result2)
+summary(meta_model3)
+summary(meta_result3)
+summary(meta_model4)
+summary(meta_result4)
 ```
 
 
