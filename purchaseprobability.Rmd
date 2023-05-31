@@ -482,27 +482,29 @@ forest.meta(m1.gen_purchase_dryer,
 
 ```{r}
 ### MULTI-LEVEL MODEL ###
-# convert categorical variables to numeric
-# discuss the variables to include
 
 # Step 1: Create a meta-analysis model
-meta_model <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
+meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
+meta_model2 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ appliance+0)
+# dishwasher and heat pump are showing insignificant negative results
+meta_model3 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ intervention+0)
+meta_model4 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ appliance+0)
+# clothes dryer and dishwasher show insignificant negative results
 
 # Step 2: Fit the meta-analysis model
+# what does this one do
 meta_result <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
 
-meta_result<-rma.mv(z_value, z_variance, mods = ~  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = appliancespurchase, method = "REML")
+meta_result3 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+meta_result4 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+meta_result1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "FE")
+meta_result2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "FE")
+# make graphs from this
 
-# Step 3: Inspect the meta-analysis results
-summary(meta_result)
-
-# Step 4: Explore heterogeneity
-forest(meta_result)
-
-# Step 5: Conduct subgroup analyses or meta-regression (if applicable)
-# Assume you have an additional predictor variable named 'predictor'
-meta_model <- rma(z_value, z_variance, mods = ~ appliance +0 , data = data_purchase, method = "REML")
 ```
 
 
