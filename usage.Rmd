@@ -1,15 +1,10 @@
 ---
 title: "appliances usage"
 output: html_document
-
-# make sure column names are updated
-# put all the appliances together
-# try different models to estimate effects
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd("/Users/dianadanilenko/Desktop/appliances_analysis/usage")
 ```
 
 ```{r}
@@ -23,167 +18,112 @@ library(writexl)
 library(openxlsx)
 library(dplyr)
 library(stringr)
-library(readxl)
 options(scipen = 999)
 ```
 
 ```{r}
-## Load datasets  for usage 
-appliancesusage <- read_xlsx("appliances_usage.xlsx", sheet = "Appliances")
-columns <- c("z_value", "z_variance","year_data_study","coefficient", "coefficient_se","p_value", "control_mean","control_sample_size","control_sd","treated_mean","treatment_sample_size","treated_sd","total_observations", "diff_mean","pooled_sd","monetary_incentive_size","monetary_incentive_relative","label_monetary_size","label_consumption_size","d_value")
-appliancesusage[columns] <- lapply(appliancesusage[columns], as.numeric)
-appliancesusage$z_value <- ifelse(appliancesusage$effect_direction == "decrease",
-                                   -appliancesusage$z_value,
-                                   appliancesusage$z_value)
+# load datasets  for usage 
+data_usage <- data.frame()
+# filter to a needed dependent variable
+data_usage <- appliances %>% 
+                  filter(dep_variable_purchase_category == "energy use after switching to a more efficient appliance")
+# exclude the outliers
+data_usage <- data_usage %>% 
+                  filter(z_value < 0.5 & z_value > -0.5 )
 ```
-```{r}
-appliancesusage$statistical_technique <- ifelse(
-  grepl("logit", appliancesusage$statistical_technique, ignore.case = TRUE),
-  "logit",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("probit", appliancesusage$statistical_technique, ignore.case = TRUE),
-  "probit",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("binomial", appliancesusage$statistical_technique, ignore.case = TRUE),
-  "linear probability model",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("ITT", appliancesusage$statistical_technique, ignore.case = TRUE),
-  "logit",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("IV", appliancesusage$statistical_technique, ignore.case = FALSE),
-  "logit",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("OLS", appliancesusage$statistical_technique, ignore.case = FALSE),
-  "linear probability model",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("matching", appliancesusage$statistical_technique, ignore.case = FALSE),
-  "linear probability model",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("2SLS", appliancesusage$statistical_technique, ignore.case = FALSE),
-  "linear probability model",
-  appliancesusage$statistical_technique
-)
-appliancesusage$statistical_technique <- ifelse(
-  grepl("squares", appliancesusage$statistical_technique, ignore.case = TRUE),
-  "linear probability model",
-  appliancesusage$statistical_technique
-)
-appliancesusage$experimental_setting <- ifelse(
-  appliancesusage$experimental_setting %in% c("retailer", "sales agent"),
-  "retailer",
-  appliancesusage$experimental_setting
-)
-appliancesusage$experimental_setting <- ifelse(
-  grepl("pre-record", appliancesusage$experimental_setting, ignore.case = TRUE),
-  "retailer",
-  appliancesusage$experimental_setting
-)
-appliancesusage$country <- ifelse(
-  grepl(",", appliancesusage$country, ignore.case = TRUE),
-  "multiple",
-  appliancesusage$country
-)
-appliancesusage$participant_type <- ifelse(
-  appliancesusage$participant_type %in% c("homeowners", "residents"),
-  appliancesusage$participant_type,
-  "unspecified"
-)
-```
+
 
 ```{r}
 # observe summary statistics
-summary(appliancesusage)
+summary(data_usage)
 ```
 
-
 ```{r}
-appliancesusage$intervention <- with(appliancesusage, case_when(
-  feedback == 1 ~ "Feedback",
-  information == 1 ~ "Information",
-  label == 1 ~ "Label",
-  rebate == 1 ~ "Rebate",
-  tax_credit == 1 ~ "Tax",
-  subsidy == 1 ~ "Subsidy",
-  loan == 1 ~ "Loan",
-  choice_architecture == 1 ~ "Choice Architecture",
-  TRUE ~ NA_character_
-))
+# subset dataset for each appliance and intervention in usage
 
-appliancesusage$appliance <- with(appliancesusage, case_when(
-  tv == 1 ~ "TV",
-  ac == 1 ~ "Air-Conditioner",
-  refrigerator == 1 ~ "Refrigerator",
-  diswasher == 1 ~ "Dishwasher",
-  washing_machine == 1 ~ "Washing Machine",
-  clothes_dryer == 1 ~ "Clothes Dryer",
-  heat_pump == 1 ~ "Heat Pump",
-  lighting == 1 ~ "Lighting",
-  water_heater == 1 ~ "Water Heater",
-  TRUE ~ NA_character_
-))
-```
-```{r}
-##dishwasher
-### RANDOM EFFECTS ###
-m.gen_usage_dishwasher <- metagen(data = data_usage_dishwasher,
-                                  TE = z_value,
-                                  seTE = z_variance,
-                                  studlab = authors,
-                                  sm = "ZCOR",
-                                  fixed = FALSE,
-                                  random = TRUE,
-                                  backtransf = F)
+#data_usage_washing <- data_usage %>% 
+                  #filter(washing_machine == 1)
 
-## forest plot of usage
-png(file = "forestplot_dishwasher_random.png", width = 5000, height = 2000, res = 500)
-forest.meta(m.gen_usage_dishwasher,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
+data_usage_dishwasher <- data_usage %>% 
+                  filter(diswasher == 1)
 
-### FIXED EFFECTS ###
-m1.gen_usage_dishwasher <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_dishwasher,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F)
-## forest plot of usage
-png(file = "forestplot_dishwasher_fixed.png", width = 5000, height = 2000, res = 500)
-forest.meta(m1.gen_usage_dishwasher,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
+#data_usage_dryer <- data_usage %>% 
+                  #filter(clothes_dryer == 1)
+
+data_usage_refrigerator <- data_usage %>% 
+                  filter(refrigerator == 1)
+
+data_usage_heat_pump <- data_usage %>% 
+                  filter(heat_pump == 1)
+
+data_usage_lighting <- data_usage %>% 
+                  filter(lighting == 1)
+
+#data_usage_water <- data_usage %>% 
+                  #filter(water_heater == 1)
+
+data_usage_ac <- data_usage %>% 
+                  filter(ac == 1)
+
+#data_usage_tv <- data_usage %>% 
+                  #filter(tv == 1)
 ```
 
-
 ```{r}
+## creating matrix of appliance and intervention
+## check whether all combinations are in here
+
+##dishwasher / interventions
+
+data_usage_dishwasher_information <- data_usage_dishwasher %>% 
+                                 filter(information == 1)
+
+data_usage_dishwasher_rebate <- data_usage_dishwasher %>% 
+                                 filter(rebate == 1)
+
 ##refrigerator
-### RANDOM EFFECTS ###
-m.gen_usage_refrigerator <- metagen(TE = z_value,
+
+data_usage_refrigerator_information <- data_usage_refrigerator %>% 
+                                 filter(information == 1)
+
+data_usage_refrigerator_rebate <- data_usage_refrigerator %>% 
+                                 filter(rebate == 1)
+
+data_usage_refrigerator_label <- data_usage_refrigerator %>% 
+                                 filter(label == 1)
+
+##heatpump
+data_usage_heat_pump_information <- data_usage_heat_pump %>% 
+                                 filter(information == 1)
+
+data_usage_heat_pump_feedback <- data_usage_heat_pump %>% 
+                                 filter(feedback == 1)
+
+data_usage_heat_pump_rebate <- data_usage_heat_pump %>% 
+                                 filter(rebate == 1)
+
+##lighting
+data_usage_lighting_information <- data_usage_lighting %>% 
+                                 filter(information == 1)
+
+data_usage_lighting_feedback <- data_usage_lighting %>% 
+                                 filter(feedback == 1)
+##air con
+data_usage_air_information <- data_usage_air %>% 
+                                 filter(information == 1)
+data_usage_air_feedback <- data_usage_air %>% 
+                                 filter(feedback == 1)
+data_usage_air_rebate <- data_usage_air %>% 
+                                 filter(rebate == 1)
+```
+
+```{r}
+### RANDOM EFFECTS MODEL ###
+##washing machine
+m.gen_usage_washing <- metagen(TE = z_value,
                  seTE = z_variance,
-                 data = data_usage_refrigerator,
-                 studlab = authors,
+                 data = data_usage_washing,
+                 studlab = Authors,
                  sm = "ZCOR",
                  fixed = FALSE,
                  random = TRUE,
@@ -192,42 +132,97 @@ m.gen_usage_refrigerator <- metagen(TE = z_value,
 
 ## forest plot of usage
 
-png(file = "forestplot_refrigerator_random.png", width = 5000, height = 2200, res = 500)
-forest.meta(m.gen_usage_refrigerator,
-           leftcols = c("authors", "Intervention"),
+png(file = "forestplot_washing.png", width = 5000, height = 2000, res = 500)
+forest.meta(m.gen_usage_washing,
+           leftcols = c("Authors", "Intervention"),
            digits =6,
            col.random = "Red",
            xlab = "Effect Sizes",
            col.square = "Blue")
 
-### FIXED EFFECTS ###
-m1.gen_usage_refrigerator <- metagen(TE = z_value,
+### FIXED EFFECTS MODEL ###
+  
+m.gen_usage_washing <- metagen(TE = z_value,
                  seTE = z_variance,
-                 data = data_usage_refrigerator,
-                 studlab = authors,
+                 data = data_usage_washing,
+                 studlab = Authors,
                  sm = "ZCOR",
                  fixed = TRUE,
                  random = FALSE,
-                 backtransf = F)
+                 backtransf = F,
+                 # cluster ? 
+                 # subgroup ? 
+)
+
 ## forest plot of usage
-png(file = "forestplot_refrigerator_fixed.png", width = 5000, height = 2000, res = 500)
-forest.meta(m1.gen_usage_refrigerator,
-           leftcols = c("authors", "Intervention"),
+
+png(file = "forestplot_washing.png", width = 5000, height = 2000, res = 500)
+forest.meta(m.gen_usage_washing,
+           leftcols = c("Authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")       
+```
+
+
+```{r}
+##dishwasher 
+m.gen_usage_dishwasher <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_dishwasher,
+                 studlab = Authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+png(file = "forestplot_dishwasher.png", width = 5000, height = 2000, res = 500)
+forest.meta(m.gen_usage_dishwasher,
+           leftcols = c("Authors", "Intervention"),
            digits =6,
            col.random = "Red",
            xlab = "Effect Sizes",
            col.square = "Blue")
+
+ 
+```
+
+
+```{r}
+##refrigerator
+m.gen_usage_refrigerator <- metagen(TE = z_value,
+                 seTE = z_variance,
+                 data = data_usage_refrigerator,
+                 studlab = Authors,
+                 sm = "ZCOR",
+                 fixed = FALSE,
+                 random = TRUE,
+                 backtransf = F,
+                 )
+
+## forest plot of usage
+
+png(file = "forestplot_refrigerator_u.png", width = 5000, height = 2200, res = 500)
+forest.meta(m.gen_usage_refrigerator,
+           leftcols = c("Authors", "Intervention"),
+           digits =6,
+           col.random = "Red",
+           xlab = "Effect Sizes",
+           col.square = "Blue")
+
  
            
 ```
 
 ```{r}
 ##heatpump
-### RANDOM EFFECTS ### 
 m.gen_usage_heat_pump <- metagen(TE = z_value,
                  seTE = z_variance,
                  data = data_usage_heat_pump,
-                 studlab = authors,
+                 studlab = Authors,
                  sm = "ZCOR",
                  fixed = FALSE,
                  random = TRUE,
@@ -235,33 +230,13 @@ m.gen_usage_heat_pump <- metagen(TE = z_value,
                  )
 
 ## forest plot of usage
-png(file = "forestplot_heatpump_random.png", width = 5000, height = 1800, res = 500)
+png(file = "forestplot_heatpump_u.png", width = 5000, height = 1800, res = 500)
 forest.meta(m.gen_usage_heat_pump,
-           leftcols = c("authors", "Intervention"),
+           leftcols = c("Authors", "Intervention"),
            digits =6,
            col.random = "Red",
            xlab = "Effect Sizes",
            col.square = "Blue")
-
-### FIXED EFFECTS ### 
-
-m1.gen_usage_heat_pump <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_heat_pump,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F)
-## forest plot of usage
-png(file = "forestplot_heat_pump_fixed.png", width = 5000, height = 2000, res = 500)
-forest.meta(m1.gen_usage_heat_pump,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
- 
 
  
 ```
@@ -269,11 +244,10 @@ forest.meta(m1.gen_usage_heat_pump,
 
 ```{r}
 ##lighting
-### RANDOM EFFECTS ###
 m.gen_usage_lighting <- metagen(TE = z_value,
                  seTE = z_variance,
                  data = data_usage_lighting,
-                 studlab = authors,
+                 studlab = Authors,
                  sm = "ZCOR",
                  fixed = FALSE,
                  random = TRUE,
@@ -282,134 +256,22 @@ m.gen_usage_lighting <- metagen(TE = z_value,
 
 ## forest plot of usage
 
-png(file = "forestplot_lighting_random.png", width = 5000, height = 1500, res = 500)
+png(file = "forestplot_lighting_u.png", width = 5000, height = 1500, res = 500)
+
 forest.meta(m.gen_usage_lighting,
-           leftcols = c("authors", "Intervention"),
+           leftcols = c("Authors", "Intervention"),
            digits =6,
            col.random = "Red",
            xlab = "Effect Sizes",
            col.square = "Blue")
 
-### FIXED EFFECTS ###
-
-m1.gen_usage_lighting <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_lighting,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of usage
-
-png(file = "forestplot_lighting_fixed.png", width = 5000, height = 1500, res = 500)
-forest.meta(m1.gen_usage_lighting,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
  
 
 ```
 
 
 ```{r}
-##waterheater
-### RANDOM EFFECTS ###
-m.gen_usage_water <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_water,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of usage
-
-png(file = "forestplot_water_random.png", width = 5500, height = 2600, res = 500)
-forest.meta(m.gen_usage_water,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_usage_water <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_water,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of usage
-
-png(file = "forestplot_water_fixed.png", width = 5500, height = 2600, res = 500)
-forest.meta(m1.gen_usage_water,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-```
-
-```{r}
-## tv
-### RANDOM EFFECTS ###
-m.gen_usage_tv <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_tv,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of usage
-
-png(file = "forestplot_tv_random.png", width = 5500, height = 2600, res = 500)
-forest.meta(m.gen_usage_tv,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_usage_tv <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_tv,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of usage
-
-png(file = "forestplot_tv_fixed.png", width = 5500, height = 2600, res = 500)
-forest.meta(m1.gen_usage_tv,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-```
-
-
-```{r}
 ##airconditioning
-### RANDOM EFFECTS ###
 m.gen_usage_ac <- metagen(TE = z_value,
                  seTE = z_variance,
                  data = data_usage_ac,
@@ -422,7 +284,8 @@ m.gen_usage_ac <- metagen(TE = z_value,
 
 ## forest plot of usage
 
-png(file = "forestplot_air_random.png", width = 5500, height = 3500, res = 500)
+png(file = "forestplot_air_u.png", width = 5500, height = 2600, res = 500)
+
 forest.meta(m.gen_usage_ac,
            leftcols = c("authors", "Intervention"),
            digits =6,
@@ -430,28 +293,8 @@ forest.meta(m.gen_usage_ac,
            xlab = "Effect Sizes",
            col.square = "Blue")
 
-### FIXED EFFECTS ###
-m1.gen_usage_ac <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_usage_ac,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of usage
-
-png(file = "forestplot_air_fixed.png", width = 5500, height = 3500, res = 500)
-forest.meta(m1.gen_usage_ac,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
+ 
 ```
-
 
 ```{r}
 # done until here
@@ -682,21 +525,3 @@ metacor(cor = r_effect_size_obsversation,
         method.tau = "REML",
         hakn = T)
 ```
-
-```{r}
-####ggplot of just the pooled effect of each of the appliances - ???
-
-cohort <- as.character(c("Washing Machine", "Refrigerator","Dishwasher", "Heat Pump","Air Conditioning", "Lighting" ))
-beta <-  as.numeric(c(-0.0001, 0.0040, -0.0007, 0.0009,-0.0,-0.0075 ))
-lower95 <- as.numeric(c(-0.0003, 0.0004, -0.0034, -0.0023,-0.0001, -0.0111))
-upper95 <- as.numeric(c(0.0001,0.0076,0.0019, 0.0042, 0.0001, -0.0039))
-population <- as.numeric(c(9,11,7,7,13,4))
-data_plot_usage <- as.data.frame(cbind(cohort, beta ,lower95,upper95,population))
-
-ggplot(data=data_plot_usage,aes(x=beta,y=cohort))+
-        geom_point(aes(size=population))+
-        geom_errorbarh(aes(xmin=lower95,xmax=upper95))+
-        theme_minimal()
-
-```
-
