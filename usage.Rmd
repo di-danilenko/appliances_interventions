@@ -136,6 +136,7 @@ appliancesusage$appliance <- with(appliancesusage, case_when(
   TRUE ~ NA_character_
 ))
 ```
+
 ```{r}
 ##dishwasher
 ### RANDOM EFFECTS ###
