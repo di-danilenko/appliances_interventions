@@ -22,6 +22,7 @@ library(openxlsx)
 library(dplyr)
 library(stringr)
 library(readxl)
+library(ggridges)
 options(scipen = 999)
 ```
 
@@ -51,6 +52,17 @@ data_purchase1 <- appliances %>%
 data_purchase1 <- data_purchase1 %>% 
                   filter(z_value < 0.5 & z_value > -0.5 )
 ```
+
+```{r}
+data_wtp <- data.frame()
+# filter to a needed dependent variable
+data_wtp <- appliances %>%
+  filter(dep_variable_purchase_category == "WTP for efficient appliance")
+# exclude the outliers
+data_wtp <- data_wtp %>% 
+                  filter(z_value < 0.5 & z_value > -0.5 )
+```
+
 
 
 ```{r}
@@ -585,6 +597,68 @@ summary(meta_result4_1)
 # random effects multi-level by appliance
 # AC, light, fridge, tv, washing machine, water heater significant positive
 ```
+
+```{r}
+avgffect_bygroup<- filter(data_purchase1) %>%
+  group_by(appliance, intervention) %>% 
+  summarise(avg = mean(z_value, na.rm = TRUE))%>%
+  pivot_wider(names_from = intervention, values_from = avg)%>%
+  print()
+```
+```{r}
+### FREQUENCY TABLES AND DISTRIBUTIONS
+ggplot(data_purchase1, aes(x = z_value, y = z_variance , colour = appliance)) +
+  # scale_y_continuous(limits = c(-0.05,.5))+
+  geom_point(size = 2, alpha = 0.25) +
+  geom_jitter(width = .5, alpha = .25) +
+  labs(x = "z_value", y = "variance") +
+  facet_wrap(vars(data_purchase1$intervention))+
+  theme_bw()
+
+ggplot(data_purchase1, aes(x = year_data_study, y = z_value, colour = appliance)) +
+  # scale_y_continuous(limits = c(-0.05,.5))+
+  geom_point(size = 2, alpha = 0.25) +
+  geom_jitter(width = .5, alpha = .25) +
+  labs(x = "", y = "z_value") +
+  theme_bw()
+```
+```{r}
+# Effect level analysis 
+
+ggplot(data_purchase1, aes(x = z_value, y = intervention, colour = intervention)) +
+  geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
+                       quantile_lines = TRUE, quantiles = c(0.5)) +
+  geom_jitter(height = .2, alpha = .1)
+
+ggplot(data_purchase1, 
+              aes(x = z_value, y = appliance, colour = appliance)) +
+  geom_density_ridges2(stat = "density", aes(height = stat(density)),
+                       fill = "lightblue", alpha = 0.5, scale = 1, 
+                       quantile_lines = TRUE, quantiles = c(0.5)) +
+  geom_jitter(height = .2, alpha = .1)
+
+# Summary by group using dplyr
+
+data_purchase1 %>%                               
+  group_by(appliance) %>% 
+  summarize(min = min(z_value, na.rm = T),
+            q1 = quantile(z_value, 0.25, na.rm = T),
+            median = median(z_value, na.rm = T),
+            mean = mean(z_value, na.rm = T),
+            q3 = quantile(z_value, 0.75, na.rm = T),
+            max = max(z_value, na.rm = T))
+
+
+ggplot(data_purchase1[data_purchase1$opt_in != "no such option",], aes(x = z_value, y = as.factor(opt_in))) +
+  geom_density_ridges2(stat = "density", aes(height = stat(density)),
+                       fill = "lightblue", alpha = 0.5, scale = .8, 
+                       quantile_lines = TRUE, quantiles = c(0.5)) +
+  geom_jitter(height = .2, alpha = .1) 
+#Warning: Ignoring unknown parameters: `quantile_lines` and `quantiles`
+```
+
+
+
 
 
 
