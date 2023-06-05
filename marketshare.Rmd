@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_analysis/marketshare")
+setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 
@@ -25,38 +25,69 @@ library(readxl)
 options(scipen = 999)
 ```
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-appliancesmarketshare <- read_xlsx("appliances_marketshare.xlsx", sheet = "Appliances")
-appliancesmarketshare$z_value <- as.numeric(appliancesmarketshare$z_value)
-appliancesmarketshare$z_value <- ifelse(appliancesmarketshare$effect_direction == "decrease",
-                                   -appliancesmarketshare$z_value,
-                                   appliancesmarketshare$z_value)
-appliancesmarketshare$z_variance <- as.numeric(appliancesmarketshare$z_variance)
+data_marketshare <- data.frame()
+# filter to a needed dependent variable
+data_marketshare <- appliances %>% 
+                  filter(dep_variable_purchase_category == "market share of efficient appliance")
+# exclude the outliers
+data_marketshare<- data_marketshare %>% 
+                  filter(z_value < 0.5 & z_value > -0.5 )
 ```
 
 ```{r}
-summary(appliancesmarketshare)
+### MULTI-LEVEL MODEL ###
+
+# Step 1: Create a meta-analysis model
+meta_model1_marketshare <- rma(z_value, z_variance, data = data_marketshare, method = "FE", mods = ~ intervention+0)
+meta_model2_marketshare <- rma(z_value, z_variance, data = data_marketshare, method = "FE", mods = ~ appliance+0)
+meta_model3_marketshare <- rma(z_value, z_variance, data = data_marketshare, method = "REML", mods = ~ intervention+0)
+meta_model4_marketshare <- rma(z_value, z_variance, data = data_marketshare, method = "REML", mods = ~ appliance+0)
+
+# Step 2: Fit the meta-analysis model
+meta_result1_marketshare <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_marketshare, method = "FE")
+meta_result2_marketshare <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_marketshare, method = "FE")
+meta_result3_marketshare <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_marketshare, method = "REML")
+meta_result4_marketshare <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_marketshare, method = "REML")
+# make graphs from this
+summary(meta_model1_marketshare)
+# fixed effects by intervention
+# label and rebate significant positive
+summary(meta_result1_marketshare)
+# fixed effects multi-level by intervention
+# label and rebate significant positive
+summary(meta_model2_marketshare)
+# fixed effects by appliance
+# AC, dryer, fridge, washing machine significant positive
+summary(meta_result2_marketshare)
+# fixed effects multi-level by appliance
+# AC, dryer, fridge, washing machine significant positive
+summary(meta_model3_marketshare)
+# random effects by intervention
+# label and rebate significant positive
+summary(meta_result3_marketshare)
+# random effects multi-level by intervention
+# nothing significant
+summary(meta_model4_marketshare)
+# random effects by appliance
+# fridge and washing machine significant positive
+summary(meta_result4_marketshare)
+# random effects multi-level by appliance
+# nothing significant
 ```
 
 ```{r}
 ## Subset dataset for each appliance and intervention in marketshare
 ## We want to regroup by interventions and then only arrange by appliance
 ## rebate, tax_credit, subsidy, loan can be grouped into monetary ? 
-data_marketshare <- appliancesmarketshare %>% 
-              mutate(Intervention = case_when(feedback == 1 ~ "Feedback",
-                                              information == 1 ~ "Information",
-                                              label == 1 ~ "Label",
-                                              rebate == 1 ~ "Rebate",
-                                              tax_credit == 1 ~ "Tax",
-                                              subsidy == 1 ~ "Subsidy",
-                                              loan == 1 ~ "Loan",
-                                              choice_architecture == 1 ~ "Choice Architecture"))
-
 data_marketshare_washing <- data_marketshare %>% 
                   filter(washing_machine == 1)
 

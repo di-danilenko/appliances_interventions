@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
+setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 
@@ -40,6 +40,18 @@ data_purchase <- appliances %>%
 data_purchase <- data_purchase %>% 
                   filter(z_value < 0.5 & z_value > -0.5 )
 ```
+
+```{r}
+# include WTP and purchase probability together
+data_purchase1 <- data.frame()
+# filter to a needed dependent variable
+data_purchase1 <- appliances %>%
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+# exclude the outliers
+data_purchase1 <- data_purchase1 %>% 
+                  filter(z_value < 0.5 & z_value > -0.5 )
+```
+
 
 ```{r}
 data_purchase_washing <- data_purchase %>% 
@@ -492,29 +504,87 @@ meta_model4 <- rma(z_value, z_variance, data = data_purchase, method = "REML", m
 # clothes dryer and dishwasher show insignificant negative results
 
 # Step 2: Fit the meta-analysis model
-# what does this one do
-# meta_result <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~(1 | intervention))
-
-meta_result3 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-meta_result4 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 meta_result1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "FE")
 meta_result2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "FE")
+meta_result3 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+meta_result4 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 # make graphs from this
 summary(meta_model1)
+# fixed effects by intervention
+# feedback, label, rebate and subsidy significant positive
 summary(meta_result1)
+# fixed effects multi-level by intervention
+# feedback, label, rebate and subsidy significant positive
 summary(meta_model2)
+# fixed effects by appliance
+# AC, light, fridge, tv, washing machine significant positive
 summary(meta_result2)
+# fixed effects multi-level by appliance
+# AC, light, fridge, tv, washing machine significant positive
 summary(meta_model3)
+# random effects by intervention
+# all apart from loan significant positive
 summary(meta_result3)
+# random effects multi-level by intervention
+# all apart from loan significant positive
 summary(meta_model4)
+# random effects by appliance
+# AC, light, washing machine, water heater significant positive
 summary(meta_result4)
+# random effects multi-level by appliance
+# AC, light, fridge, tv, washing machine, water heater significant positive
+
+# most of the interventions / appliances that do not show significant effects are very small in sample size
 ```
 
+```{r}
+### MULTI-LEVEL MODEL ###
 
+# Step 1: Create a meta-analysis model
+meta_model1_1 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ intervention+0)
+meta_model2_1 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ appliance+0)
+meta_model3_1 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ intervention+0)
+meta_model4_1 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ appliance+0)
+
+# Step 2: Fit the meta-analysis model
+meta_result1_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "FE")
+meta_result2_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "FE")
+meta_result3_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
+meta_result4_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
+# make graphs from this
+summary(meta_model1_1)
+# fixed effects by intervention
+# feedback, label, rebate, subsidy significant positive
+summary(meta_result1_1)
+# fixed effects multi-level by intervention
+# feedback, label, rebate, subsidy significant positive
+summary(meta_model2_1)
+# fixed effects by appliance
+# AC, light, fridge, tv, washing machine, water heater significant positive
+summary(meta_result2_1)
+# fixed effects multi-level by appliance
+# AC, light, fridge, tv, washing machine, water heater significant positive
+summary(meta_model3_1)
+# random effects by intervention
+# feedback, information, label, rebate, subsidy significant positive
+summary(meta_result3_1)
+# random effects multi-level by intervention
+# feedback, information, label, rebate, subsidy significant positive
+summary(meta_model4_1)
+# random effects by appliance
+# AC, light, fridge, washing machine, water heater significant positive
+summary(meta_result4_1)
+# random effects multi-level by appliance
+# AC, light, fridge, tv, washing machine, water heater significant positive
+```
 
 
 
