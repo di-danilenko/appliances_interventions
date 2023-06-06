@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
 ```
 
 
@@ -26,11 +26,9 @@ library(ggridges)
 options(scipen = 999)
 ```
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 
 ```{r}
 data_purchase <- data.frame()
@@ -63,9 +61,8 @@ data_wtp <- data_wtp %>%
                   filter(z_value < 0.5 & z_value > -0.5 )
 ```
 
-
-
 ```{r}
+# filter by appliance to test basic models
 data_purchase_washing <- data_purchase %>% 
                   filter(washing_machine == 1)
 
@@ -506,6 +503,7 @@ forest.meta(m1.gen_purchase_dryer,
 
 ```{r}
 ### MULTI-LEVEL MODEL ###
+# redundant predictors dropped from the model
 
 # Step 1: Create a meta-analysis model
 meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
@@ -605,6 +603,7 @@ avgffect_bygroup<- filter(data_purchase1) %>%
   pivot_wider(names_from = intervention, values_from = avg)%>%
   print()
 ```
+
 ```{r}
 ### FREQUENCY TABLES AND DISTRIBUTIONS
 ggplot(data_purchase1, aes(x = z_value, y = z_variance , colour = appliance)) +
@@ -614,6 +613,7 @@ ggplot(data_purchase1, aes(x = z_value, y = z_variance , colour = appliance)) +
   labs(x = "z_value", y = "variance") +
   facet_wrap(vars(data_purchase1$intervention))+
   theme_bw()
+# why do they vary in size?
 
 ggplot(data_purchase1, aes(x = year_data_study, y = z_value, colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
@@ -632,8 +632,7 @@ ggplot(data_purchase1, aes(x = z_value, y = intervention, colour = intervention)
 
 ggplot(data_purchase1, 
               aes(x = z_value, y = appliance, colour = appliance)) +
-  geom_density_ridges2(stat = "density", aes(height = stat(density)),
-                       fill = "lightblue", alpha = 0.5, scale = 1, 
+  geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = 1, 
                        quantile_lines = TRUE, quantiles = c(0.5)) +
   geom_jitter(height = .2, alpha = .1)
 
@@ -650,11 +649,9 @@ data_purchase1 %>%
 
 
 ggplot(data_purchase1[data_purchase1$opt_in != "no such option",], aes(x = z_value, y = as.factor(opt_in))) +
-  geom_density_ridges2(stat = "density", aes(height = stat(density)),
-                       fill = "lightblue", alpha = 0.5, scale = .8, 
+  geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
                        quantile_lines = TRUE, quantiles = c(0.5)) +
   geom_jitter(height = .2, alpha = .1) 
-#Warning: Ignoring unknown parameters: `quantile_lines` and `quantiles`
 ```
 
 
