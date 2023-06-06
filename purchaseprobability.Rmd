@@ -9,7 +9,6 @@ output: html_document
 setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
 ```
 
-
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggplot2)
@@ -37,7 +36,8 @@ data_purchase <- appliances %>%
                   filter(dep_variable_purchase_category == "purschase (probability) of efficient appliance")
 # exclude the outliers
 data_purchase <- data_purchase %>% 
-                  filter(z_value < 0.5 & z_value > -0.5 )
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -46,9 +46,12 @@ data_purchase1 <- data.frame()
 # filter to a needed dependent variable
 data_purchase1 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+data_purchase1 <- data_purchase1 %>%
+  filter(!(appliance %in% c("Clothes Dryer", "Dishwasher")))
 # exclude the outliers
 data_purchase1 <- data_purchase1 %>% 
-                  filter(z_value < 0.5 & z_value > -0.5 )
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -58,7 +61,8 @@ data_wtp <- appliances %>%
   filter(dep_variable_purchase_category == "WTP for efficient appliance")
 # exclude the outliers
 data_wtp <- data_wtp %>% 
-                  filter(z_value < 0.5 & z_value > -0.5 )
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -552,48 +556,38 @@ summary(meta_result4)
 ```
 
 ```{r}
-### MULTI-LEVEL MODEL ###
-
-# Step 1: Create a meta-analysis model
-meta_model1_1 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ intervention+0)
-meta_model2_1 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ appliance+0)
-meta_model3_1 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ intervention+0)
-meta_model4_1 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ appliance+0)
-
-# Step 2: Fit the meta-analysis model
-meta_result1_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "FE")
-meta_result2_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "FE")
-meta_result3_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
-meta_result4_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
-# make graphs from this
-summary(meta_model1_1)
+### FIXED EFFECTS ###
+meta_model1 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ intervention+0)
 # fixed effects by intervention
 # feedback, label, rebate, subsidy significant positive
-summary(meta_result1_1)
-# fixed effects multi-level by intervention
-# feedback, label, rebate, subsidy significant positive
-summary(meta_model2_1)
+meta_model2 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ appliance+0)
 # fixed effects by appliance
 # AC, light, fridge, tv, washing machine, water heater significant positive
-summary(meta_result2_1)
-# fixed effects multi-level by appliance
-# AC, light, fridge, tv, washing machine, water heater significant positive
-summary(meta_model3_1)
+
+### RANDOM EFFECTS ###
+meta_model3 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ intervention+0)
 # random effects by intervention
 # feedback, information, label, rebate, subsidy significant positive
-summary(meta_result3_1)
-# random effects multi-level by intervention
-# feedback, information, label, rebate, subsidy significant positive
-summary(meta_model4_1)
+meta_model4 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ appliance+0)
 # random effects by appliance
 # AC, light, fridge, washing machine, water heater significant positive
-summary(meta_result4_1)
+
+### MULTI-LEVEL MODEL ###
+meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
+# random effects multi-level by intervention
+# feedback, information, label, rebate, subsidy significant positive
+meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
 # random effects multi-level by appliance
 # AC, light, fridge, tv, washing machine, water heater significant positive
+
+### INTERACTION INTERVENTION X APPLIANCE ###
+data_purchase2 <- data_purchase1 %>%
+  filter(appliance %in% c("Refrigerator", "Air-Conditioner", "Water Heater"))
+meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+summary(meta_model7)
 ```
 
 ```{r}
@@ -609,32 +603,44 @@ avgffect_bygroup<- filter(data_purchase1) %>%
 ggplot(data_purchase1, aes(x = z_value, y = z_variance , colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
   geom_point(size = 2, alpha = 0.25) +
-  geom_jitter(width = .5, alpha = .25) +
+  geom_jitter(width = .1, alpha = .25) +
   labs(x = "z_value", y = "variance") +
-  facet_wrap(vars(data_purchase1$intervention))+
+  facet_wrap(vars(data_purchase1$intervention))+ 
   theme_bw()
-# why do they vary in size?
+```
 
+```{r}
+# outlier check 
+outlier_variance <- data_purchase1 %>% 
+  filter(z_variance > 0.01)
+
+loan <- data_purchase1 %>%
+  filter(intervention == "Loan")
+```
+
+
+```{r}
 ggplot(data_purchase1, aes(x = year_data_study, y = z_value, colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
   geom_point(size = 2, alpha = 0.25) +
-  geom_jitter(width = .5, alpha = .25) +
+  #geom_jitter(width = .5, alpha = .25) +
   labs(x = "", y = "z_value") +
   theme_bw()
 ```
+
 ```{r}
 # Effect level analysis 
 
 ggplot(data_purchase1, aes(x = z_value, y = intervention, colour = intervention)) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
-                       quantile_lines = TRUE, quantiles = c(0.5)) +
-  geom_jitter(height = .2, alpha = .1)
+                       quantile_lines = TRUE, quantiles = c(0.5)) + 
+  geom_jitter(height = .1, alpha = .1)
 
 ggplot(data_purchase1, 
               aes(x = z_value, y = appliance, colour = appliance)) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = 1, 
-                       quantile_lines = TRUE, quantiles = c(0.5)) +
-  geom_jitter(height = .2, alpha = .1)
+                       quantile_lines = TRUE, quantiles = c(0.5)) + 
+  geom_jitter(height = .1, alpha = .1)
 
 # Summary by group using dplyr
 
@@ -651,7 +657,36 @@ data_purchase1 %>%
 ggplot(data_purchase1[data_purchase1$opt_in != "no such option",], aes(x = z_value, y = as.factor(opt_in))) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
                        quantile_lines = TRUE, quantiles = c(0.5)) +
-  geom_jitter(height = .2, alpha = .1) 
+  geom_jitter(height = .1, alpha = .1) 
+```
+```{r}
+### PUBLICATION BIAS ASSESSMENT ###
+
+### EGGERS TEST ###
+
+# https://osf.io/3mp6s
+# by the type of variable (?)
+# i already have the dfs split up in this way
+# data_purchase1
+funnel(dfinc5$z_value, 
+       sei = dfinc5$z_variance,
+       # level = c(90, 95, 99), 
+       # shade = c("white", "gray55", "gray75"),
+       xlim = c(-1, 1))
+# what was variable v here
+egger5 <- rma.mv(z_value, z_variance, random = ~ as.factor(sr_no) | as.factor(study_ID), mods = ~ z_variance, data = dfinc5, method = "REML")
+# cannot find function
+coef_test(egger5, vcov = "CR2")
+
+# by intervention and appliance ? 
+
+# what does this do? 
+robust(rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), 
+                     mods = ~ v, data = dfinc5, method = "REML"), cluster = as.factor(study_ID), clubSandwich = T)
+robust(rma(z_value, v, 
+                     mods = ~ v, data = dfinc5, method = "FE"), cluster = study_ID, clubSandwich = T)
+
+# bias correction
 ```
 
 

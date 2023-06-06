@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
 ```
 
 
@@ -36,7 +36,8 @@ data_marketshare <- appliances %>%
                   filter(dep_variable_purchase_category == "market share of efficient appliance")
 # exclude the outliers
 data_marketshare<- data_marketshare %>% 
-                  filter(z_value < 0.5 & z_value > -0.5 )
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}

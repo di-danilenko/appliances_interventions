@@ -29,7 +29,8 @@ data_usage <- appliances %>%
                   filter(dep_variable_purchase_category == "energy use after switching to a more efficient appliance")
 # exclude the outliers
 data_usage <- data_usage %>% 
-                  filter(z_value < 0.5 & z_value > -0.5 )
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 

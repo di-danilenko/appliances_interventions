@@ -61,6 +61,7 @@ for (file in file_names) {
 # Combine all data frames into one
 appliances <- data.frame()
 appliances <- bind_rows(data_frames)
+appliances <- appliances[, 1:(ncol(appliances) - 3)]
 ```
 
 ```{r}
@@ -125,10 +126,13 @@ appliances$continent <- as.factor(appliances$continent)
 
 appliances$oecd <- ifelse(appliances$country %in% oecd_countries, "OECD country", "non-OECD country")
 appliances$lmic <- ifelse(appliances$country %in% lmic_countries, "LMIC", "non-LMIC")
+appliances$oecd <- as.factor(appliances$oecd)
+appliances$lmic <- as.factor(appliances$lmic)
 
 ```
 
 ```{r}
+
 # clean statistical technique field
 appliances$statistical_technique <- ifelse(
   grepl("logit", appliances$statistical_technique, ignore.case = TRUE),
@@ -167,28 +171,30 @@ appliances$statistical_technique <- ifelse(
 )
 appliances$statistical_technique <- ifelse(
   grepl("2SLS", appliances$statistical_technique, ignore.case = TRUE),
-  "2SLS/OLS/WLS",
+  "2SLS",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("OLS", appliances$statistical_technique, ignore.case = TRUE),
-  "2SLS/OLS/WLS",
+  "OLS/WLS",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("squares", appliances$statistical_technique, ignore.case = TRUE),
-  "2SLS/OLS/WLS",
+  "OLS/WLS",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("IV", appliances$statistical_technique, ignore.case = FALSE),
-  "2SLS/OLS/WLS",
+  "2SLS",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- as.factor(appliances$statistical_technique)
 unique_statts <- unique(appliances$statistical_technique)
-# other - tobit, ANOVA, coarsened exact matching; IV + 2SLS + OLS + WLS
+# other - tobit, ANOVA, coarsened exact matching; IV + 2SLS + OLS + WL
 ```
+
 
 ```{r}
 appliances$experimental_setting <- ifelse(
@@ -229,7 +235,7 @@ appliances$year_data_study <- ifelse(
 
 ```{r}
 appliances$intervention <- with(appliances, case_when(
-  feedback == 1 ~ "Feedback",
+  feedback == 1 ~ "Information",
   information == 1 ~ "Information",
   label == 1 ~ "Label",
   rebate == 1 ~ "Rebate",
@@ -254,7 +260,21 @@ appliances$appliance <- with(appliances, case_when(
   TRUE ~ NA_character_
 ))
 appliances$appliance <- as.factor(appliances$appliance)
+
+appliances$intervention_category <- with(appliances, case_when(
+  feedback == 1 ~ "Information Strategies",
+  information == 1 ~ "Information Strategies",
+  label == 1 ~ "Information Strategies",
+  rebate == 1 ~ "Monetary Incentives",
+  tax_credit == 1 ~ "Monetary Incentives",
+  subsidy == 1 ~ "Monetary Incentives",
+  loan == 1 ~ "Monetary Incentives",
+  TRUE ~ NA_character_
+))
+appliances$intervention_category <- as.factor(appliances$intervention_category)
 ```
+
+
 
 
 

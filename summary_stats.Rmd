@@ -26,18 +26,22 @@ library(shiny)
 ```
 
 ```{r}
-#dfinc <- data_purchase
+dfinc <- data_purchase
 dfinc5 <- data_purchase1
-#dfinc1 <- data_usage
+dfinc1 <- data_usage
 dfinc2 <- data_marketshare
 dfinc3 <- data_wtp
-#dfinc4 <- appliances %>% 
-                  filter(z_value < 0.5 & z_value > -0.5 )
+dfinc4 <- appliances %>% 
+                  filter(z_value < 0.5 & z_value > -0.5)
+dfinc6 <- dfinc4 %>%
+  filter(intervention_category == "Information Strategies")
+dfinc7 <- dfinc4 %>%
+  filter(intervention_category == "Monetary Incentives")
 ```
 
 ```{r}
 ################DESCRIPTIVE STATISTICS##################################
-outputPath <- c("/Users/dianadanilenko/Desktop/appliances_interventions")
+outputPath <- c("C:/Users/dand/Documents/GitHub/appliances_interventions")
 short_summ    <- c("appliance",
                    "intervention",
                    "continent",
@@ -118,4 +122,20 @@ dfinc2 %>% select(all_of(sumVars)) %>%
   print(file = paste0(outputPath, "summarystatistics_marketshare.html"))
 rmarkdown::render(paste0(outputPath, "summarystatistics_marketshare.html"), output_file = paste0(outputPath, "summarystatistics_marketshare.doc"))
 ```
+```{r}
+freq(select(dfinc6, all_of(short_summ)), cumul = FALSE)
 
+dfinc6 %>% select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid")  %>% 
+  print(file = paste0(outputPath, "summarystatistics_info.html"))
+rmarkdown::render(paste0(outputPath, "summarystatistics_info.html"), output_file = paste0(outputPath, "summarystatistics_info.doc"))
+```
+
+```{r}
+freq(select(dfinc7, all_of(short_summ)), cumul = FALSE)
+
+dfinc7 %>% select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid")  %>% 
+  print(file = paste0(outputPath, "summarystatistics_monetary.html"))
+rmarkdown::render(paste0(outputPath, "summarystatistics_monetary.html"), output_file = paste0(outputPath, "summarystatistics_monetary.doc"))
+```
