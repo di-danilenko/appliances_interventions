@@ -107,8 +107,6 @@ controlvars <- c("continent",
                  "randomisation_dummy",
                  "outOfSampleBias",
                  "reportingBiases",
-                 "year_publication",
-                 "year_data_study",
                  "controls_energy_prices",
                  "controls_environmental_attitudes",
                  "controls_demographics")
@@ -805,25 +803,50 @@ robust(rma(z_value, v,
 # outliers in loan and rebate (strong negative effects)
 # outliers by variance (> 0.25)
 # outliers by z_value > 0.5 or < - 0.5
+threshold <- 0.2
 
 x <- cooks.distance(meta_model3)
 plot(x, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x,labels=names(x))
 
-# are those the serial numbers or what? 
-# model4 105, 76
-# model3 124, 82, 119, 105,
-# row no
-# without additional moderator variables
-# retrieve the row numbers and tag them 
+above_threshold_rows <- which(x > threshold)
+outlier_cooksd <- data_purchase3[above_threshold_rows,]
 
-# does it work okay with that model?
-#m.mv.Peak <- rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), data = df, method = "REML")
+x4 <- cooks.distance(meta_model4)
+plot(x4, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+text(x4,labels=names(x4))
 
-y <- dfbetas(meta_model5, progbar=FALSE, reestimate=F, parallel="multicore")
-plot(y$intrcpt, type="o", pch=19, xlab="Observed Outcome", ylab="DFBetas")
+above_threshold_rows4 <- which(x4 > threshold)
+outlier_cooksd4 <- data_purchase3[above_threshold_rows4,]
+
+# y <- dfbetas(meta_model5, progbar=FALSE, reestimate=F, parallel="multicore")
+# plot(y$intrcpt, type="o", pch=19, xlab="Observed Outcome", ylab="DFBetas")
 
 ```
+
+```{r}
+
+# create binary variables for all control factor variables
+
+# iterate over each factor variable
+for (var_name in controlvars) {
+  
+  # get unique factor levels
+  
+  levels <- unique(data_purchase3[[var_name]])
+  
+  # create binary variables for each factor level
+  for (level in levels) {
+    # create a new column name by appending the factor level to the variable name
+    new_col_name <- paste(var_name, level, sep = "_")
+    
+    # create a binary variable for the current factor level
+    data_purchase3[[new_col_name]] <- as.integer(data_purchase3[[var_name]] == level)
+  }
+}
+
+```
+
 
 
 
