@@ -112,13 +112,6 @@ controlvars <- c("continent",
                  "controls_energy_prices",
                  "controls_environmental_attitudes",
                  "controls_demographics")
-
-appliances$"controls_energy_prices" <- appliances$"controls energy prices"
-appliances$"controls energy prices" <- NULL
-appliances$"controls_environmental_attitudes" <- appliances$"controls environmental attitudes"
-appliances$"controls environmental attitudes" <- NULL
-appliances$"controls_demographics" <- appliances$"controls demographics"
-appliances$"controls demographics" <- NULL
 ```
 
 
@@ -700,6 +693,8 @@ for (var in controlvars) {
 # AC results change quite a bit, although there was only one effect size on AC 
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
+
+summary(meta_model8)
 ```
 
 ```{r}

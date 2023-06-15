@@ -58,6 +58,15 @@ for (file in file_names) {
   data_frames <- append(data_frames, list(df))
 }
 
+appliances$"controls_energy_prices" <- appliances$"controls energy prices"
+appliances$"controls energy prices" <- NULL
+appliances$"controls_environmental_attitudes" <- appliances$"controls environmental attitudes"
+appliances$"controls environmental attitudes" <- NULL
+appliances$"controls_demographics" <- appliances$"controls demographics"
+appliances$"controls demographics" <- NULL
+appliances$year_data_study <- as.numeric(appliances$year_data_study)
+appliances$year_publication <- as.numeric(appliances$year_publication)
+
 # Combine all data frames into one
 appliances <- data.frame()
 appliances <- bind_rows(data_frames)
