@@ -242,7 +242,7 @@ appliances$intervention <- with(appliances, case_when(
   tax_credit == 1 ~ "Tax",
   subsidy == 1 ~ "Subsidy",
   loan == 1 ~ "Loan",
-  choice_architecture == 1 ~ "Choice Architecture",
+  choice_architecture == 1 ~ "Command & Control",
   TRUE ~ NA_character_
 ))
 appliances$intervention <- as.factor(appliances$intervention)
@@ -265,14 +265,20 @@ appliances$intervention_category <- with(appliances, case_when(
   feedback == 1 ~ "Information Strategies",
   information == 1 ~ "Information Strategies",
   label == 1 ~ "Information Strategies",
-  rebate == 1 ~ "Monetary Incentives",
-  tax_credit == 1 ~ "Monetary Incentives",
-  subsidy == 1 ~ "Monetary Incentives",
-  loan == 1 ~ "Monetary Incentives",
+  rebate == 1 ~ "Economic Incentives",
+  tax_credit == 1 ~ "Economic Incentives",
+  subsidy == 1 ~ "Economic Incentives",
+  loan == 1 ~ "Economic Incentives",
   TRUE ~ NA_character_
 ))
 appliances$intervention_category <- as.factor(appliances$intervention_category)
 ```
+
+```{r}
+# write the clean dataset into an excel file
+write.xlsx(appliances, file="appliances_clean.xlsx")
+```
+
 
 
 
