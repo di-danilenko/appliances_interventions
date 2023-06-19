@@ -30,6 +30,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+appliances <- read.xlsx("appliances_clean.xlsx")
+# 
+```
+
+
+```{r}
 data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>% 
@@ -80,7 +86,6 @@ data_purchase3 <- data.frame()
 data_purchase3 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 ```
-
 
 ```{r}
 # WTP separately

@@ -288,6 +288,11 @@ appliances$intervention_category <- as.factor(appliances$intervention_category)
 write.xlsx(appliances, file="appliances_clean.xlsx")
 ```
 
+```{r}
+appliances <- read.xlsx("appliances_clean.xlsx")
+# output it in R database
+```
+
 
 
 
