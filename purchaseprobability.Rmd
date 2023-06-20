@@ -6,7 +6,15 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions")
+setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
+```
+
+```{r}
+# appliances <- read.xlsx("appliances_clean.xlsx")
+library(RSQLite)
+con <- dbConnect(RSQLite::SQLite(), "C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.db")
+appliances <- dbReadTable(con, "my_table")
+dbDisconnect(con)
 ```
 
 ```{r setup, include=FALSE}
@@ -28,11 +36,6 @@ options(scipen = 999)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-```{r}
-appliances <- read.xlsx("appliances_clean.xlsx")
-```
-
 
 ```{r}
 data_purchase <- data.frame()
