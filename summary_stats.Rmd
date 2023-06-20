@@ -32,11 +32,12 @@ dfinc1 <- data_usage
 dfinc2 <- data_marketshare
 dfinc3 <- data_wtp
 dfinc4 <- appliances %>% 
-                  filter(z_value < 0.5 & z_value > -0.5)
+                  #filter(z_value < 0.5 & z_value > -0.5)
 dfinc6 <- dfinc4 %>%
   filter(intervention_category == "Information Strategies")
 dfinc7 <- dfinc4 %>%
   filter(intervention_category == "Monetary Incentives")
+dfinc8 <- data_purchase3
 ```
 
 ```{r}
@@ -62,9 +63,9 @@ sumVarsCatego <- c(
   "reportingBiases",
   "year_publication",
   "year_data_study",
-  "controls energy prices",
-  "controls environmental attitudes",
-  "controls demographics")
+  "controls_energy_prices",
+  "controls_environmental_attitudes",
+  "controls_demographics")
 
 sumvarsNum <- c("percent_change",
                 "z_value",
@@ -132,10 +133,10 @@ rmarkdown::render(paste0(outputPath, "summarystatistics_info.html"), output_file
 ```
 
 ```{r}
-freq(select(dfinc7, all_of(short_summ)), cumul = FALSE)
+freq(select(dfinc8, all_of(short_summ)), cumul = FALSE)
 
-dfinc7 %>% select(all_of(sumVars)) %>% 
+dfinc8 %>% select(all_of(sumVars)) %>% 
   dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_monetary.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_monetary.html"), output_file = paste0(outputPath, "summarystatistics_monetary.doc"))
+  print(file = paste0(outputPath, "summarystatistics_purchase3.html"))
+rmarkdown::render(paste0(outputPath, "summarystatistics_purchase3.html"), output_file = paste0(outputPath, "summarystatistics_purchase3.doc"))
 ```

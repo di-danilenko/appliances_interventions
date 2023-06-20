@@ -284,8 +284,22 @@ appliances$intervention_category <- as.factor(appliances$intervention_category)
 ```
 
 ```{r}
+appliances <- appliances %>%
+  group_by(study_ID) %>%
+  mutate(num_effect_sizes = n())
+```
+
+```{r}
+# Calculate the average number of effect sizes overall
+average_num_effect_sizes <- mean(appliances$num_effect_sizes, na.rm = TRUE)
+
+# Print the average number of effect sizes
+print(average_num_effect_sizes)
+```
+
+```{r}
 # write the clean dataset into an excel file
-write.xlsx(appliances, file="appliances_clean.xlsx")
+# write.xlsx(appliances, file="appliances_clean.xlsx")
 
 # output it in R database
 library(RSQLite)
@@ -301,6 +315,10 @@ con <- dbConnect(RSQLite::SQLite(), "C:/Users/dand/Documents/GitHub/appliances_i
 appliances <- dbReadTable(con, "my_table")
 dbDisconnect(con)
 ```
+
+
+
+
 
 
 
