@@ -788,7 +788,12 @@ data_purchase3 %>%
             max = max(z_value, na.rm = T))
 
 
-ggplot(data_purchase3[data_purchase3$opt_in != "no such option",], aes(x = z_value, y = as.factor(opt_in))) +
+ggplot(data_purchase3, aes(x = z_value, y = as.factor(outOfSampleBias))) +
+  geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
+                       quantile_lines = TRUE, quantiles = c(0.5)) +
+  geom_jitter(height = .1, alpha = .1) 
+
+ggplot(data_purchase3, aes(x = z_value, y = as.factor(reportingBiases))) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
                        quantile_lines = TRUE, quantiles = c(0.5)) +
   geom_jitter(height = .1, alpha = .1) 
