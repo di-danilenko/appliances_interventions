@@ -621,11 +621,11 @@ meta_model4 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", 
 # AC, light, fridge, washing machine, water heater significant positive
 
 ### MULTI-LEVEL MODEL ###
-meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, # add all moderator variables
+meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention + 0, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
 # random effects multi-level by intervention
 # feedback, information, label, rebate, subsidy significant positive
-meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance+0,  
+meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
 # random effects multi-level by appliance
 # AC, light, fridge, tv, washing machine, water heater significant positive
@@ -637,7 +637,7 @@ data_purchase2 <- data_purchase1 %>%
 meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
 # economic incentives x refrigerator have a negative sign  
-summary(meta_model3)
+summary(meta_model5)
 ```
 
 ```{r}
@@ -664,6 +664,9 @@ meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ dep_variable_purchase_catego
 
 meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+
+# take out outliers here and compare results
+
 #Above results show that there is no statistical difference between effect sizes for 1) wtp and purchase prob 2)monetary incentives and info strategies
 
 meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, # add all moderator variables
@@ -675,7 +678,7 @@ meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, # add all mo
 summary(meta_model5_1)
 # random effects multi-level by intervention
 # information, label, rebate significant positive
-meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance,  
+meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model6)
 # random effects multi-level by appliance
@@ -788,6 +791,7 @@ ggplot(data_purchase3[data_purchase3$opt_in != "no such option",], aes(x = z_val
                        quantile_lines = TRUE, quantiles = c(0.5)) +
   geom_jitter(height = .1, alpha = .1) 
 ```
+
 ```{r}
 ### PUBLICATION BIAS ASSESSMENT ###
 library(lmtest)
@@ -808,7 +812,7 @@ funnel(data_purchase3$z_value,
        # shade = c("white", "gray55", "gray75"),
        ylim = c(0, .3),
        col = as.factor(data_purchase3$appliance), 
-       legend =F)
+       legend =T)
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
@@ -837,24 +841,47 @@ summary(meta_egger2)
 # outliers by z_value > 0.5 or < - 0.5
 threshold <- 0.2
 
-x <- cooks.distance(meta_model3)
-plot(x, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-text(x,labels=names(x))
+x5 <- cooks.distance(meta_model5)
+plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+text(x5,labels=names(x5))
 
-above_threshold_rows <- which(x > threshold)
-outlier_cooksd <- data_purchase3[above_threshold_rows,]
+above_threshold_rows5 <- which(x5 > threshold)
+outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
-x4 <- cooks.distance(meta_model4)
-plot(x4, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-text(x4,labels=names(x4))
+x6 <- cooks.distance(meta_model6)
+plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+text(x6,labels=names(x6))
 
-above_threshold_rows4 <- which(x4 > threshold)
-outlier_cooksd4 <- data_purchase3[above_threshold_rows4,]
+above_threshold_rows6 <- which(x6 > threshold)
+outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
 
 # y <- dfbetas(meta_model5, progbar=FALSE, reestimate=F, parallel="multicore")
 # plot(y$intrcpt, type="o", pch=19, xlab="Observed Outcome", ylab="DFBetas")
 
 ```
+
+```{r}
+data_purchase5 <- data_purchase3 %>%
+  filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
+  filter(! intervention == "Loan")
+
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
+
+data_purchase6 <- data_purchase3 %>%
+  filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
+    filter(! intervention == "Loan")
+
+meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase6, method = "REML")
+summary(meta_model5_1)
+summary(meta_model6_1)
+
+meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
+summary(meta_model0_1)
+```
+
 
 ```{r}
 
