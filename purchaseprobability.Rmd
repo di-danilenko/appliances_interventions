@@ -15,6 +15,8 @@ library(RSQLite)
 con <- dbConnect(RSQLite::SQLite(), "C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.db")
 appliances <- dbReadTable(con, "my_table")
 dbDisconnect(con)
+
+# load(here("data", "meta_analysis_complete.R"))
 ```
 
 ```{r setup, include=FALSE}
@@ -806,13 +808,21 @@ funnel(data_purchase3$z_value,
        col = as.factor(data_purchase3$intervention), 
        legend =F)
 
+# Define a color palette with enough colors for each unique appliance
+my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
+
+# Create the plot
 funnel(data_purchase3$z_value, 
        v = data_purchase3$z_variance,
-       # level = c(90, 95, 99),
-       # shade = c("white", "gray55", "gray75"),
        ylim = c(0, .3),
-       col = as.factor(data_purchase3$appliance), 
-       legend = F)
+       col = my_colors[as.factor(data_purchase3$appliance)], 
+       legend = FALSE)
+
+# Get unique appliance values
+unique_appliances <- unique(data_purchase3$appliance)
+
+# Add the legend
+legend("topright", legend = unique_appliances, col = my_colors[1:length(unique_appliances)], pch = 1)
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
@@ -844,6 +854,9 @@ threshold <- 0.2
 x5 <- cooks.distance(meta_model5)
 plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x5,labels=names(x5))
+
+above_threshold_rows5 <- which(x5 > threshold)
+outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
@@ -893,6 +906,16 @@ data_purchase7 <- data_purchase3 %>%
 meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase7, method = "REML")
 summary(meta_model7)
+
+data_purchase3 <- data_purchase3 %>%
+  filter(! study_ID == 123)
+
+data_purchase3_1 <- data_purchase3 %>%
+  filter(! sr_no %in% outlier_cooksd5)
+
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3_1, method = "REML")
+summary(meta_model5_1)
 ```
 
 
