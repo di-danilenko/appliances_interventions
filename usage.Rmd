@@ -29,14 +29,44 @@ data_usage <- appliances %>%
                   filter(dep_variable_purchase_category == "energy use after switching to a more efficient appliance")
 # exclude the outliers
 data_usage <- data_usage %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
+                  filter(coefficient > -2,
+                      coefficient < 2)
+data_usage <- data_usage %>% 
+                  filter(percent_change > -2,
+                     percent_change < 2)
 ```
 
+```{r}
+data_usage$percent_change <- ifelse(is.na(data_usage$percent_change),
+                                    data_usage$coefficient,
+                                    data_usage$percent_change)
+
+data_usage$percent_change <- data_usage$percent_change*100
+```
 
 ```{r}
 # observe summary statistics
 summary(data_usage)
+
+# Count the occurrences
+count <- table(data_usage$appliance)
+print(count)
+
+# Group by appliance and calculate summary statistics
+summary_stats <- data_usage %>%
+  group_by(appliance) %>%
+  summarise(
+    mean_percent_change = mean(percent_change),
+    min_percent_change = min(percent_change),
+    max_percent_change = max(percent_change),
+    mean_coefficient = mean(coefficient),
+    min_coefficient = min(coefficient),
+    max_coefficient = max(coefficient)
+  )
+
+# Print the summary statistics
+print(summary_stats)
+
 ```
 
 ```{r}

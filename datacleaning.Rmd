@@ -85,6 +85,12 @@ appliances$t_stat <- ifelse(appliances$effect_direction == "decrease",
 appliances$r_value <- ifelse(appliances$effect_direction == "decrease",
                                    -appliances$r_value,
                                    appliances$r_value)
+appliances$coefficient <- ifelse(appliances$effect_direction == "decrease",
+                                   -appliances$coefficient,
+                                   appliances$coefficient)
+appliances$percent_change <- ifelse(appliances$effect_direction == "decrease",
+                                   -appliances$percent_change,
+                                   appliances$percent_change)
 ```
 
 ```{r}
@@ -278,6 +284,7 @@ appliances$intervention_category <- with(appliances, case_when(
   tax_credit == 1 ~ "Economic Incentives",
   subsidy == 1 ~ "Economic Incentives",
   loan == 1 ~ "Economic Incentives",
+  choice_architecture == 1  ~ "Command & Control",
   TRUE ~ NA_character_
 ))
 appliances$intervention_category <- as.factor(appliances$intervention_category)

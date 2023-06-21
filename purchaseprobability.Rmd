@@ -6,13 +6,13 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
+setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 ```{r}
 # appliances <- read.xlsx("appliances_clean.xlsx")
 library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.db")
+con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
 appliances <- dbReadTable(con, "my_table")
 dbDisconnect(con)
 
@@ -90,6 +90,8 @@ data_purchase3 <- data.frame()
 data_purchase3 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 
+count <- table(data_purchase3$intervention)
+print(count)
 ```
 
 ```{r}
@@ -903,8 +905,8 @@ meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
 summary(meta_model0_1)
 
 data_purchase7 <- data_purchase3 %>%
-  filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
+  #filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
+  #filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
   filter(! intervention == "Loan") %>%
   filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
 
@@ -913,14 +915,17 @@ meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:applia
 summary(meta_model7)
 
 data_purchase3 <- data_purchase3 %>%
-  filter(! study_ID == 123)
+  filter(! study_ID == 123) %>%
+  filter(! intervention == "Loan")
 
 data_purchase3_1 <- data_purchase3 %>%
   filter(! sr_no %in% outlier_cooksd5)
 
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3_1, method = "REML")
-summary(meta_model5_1)
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+summary(meta_model6_1)
 ```
 
 
