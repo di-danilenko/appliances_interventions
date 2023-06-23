@@ -310,7 +310,7 @@ print(average_num_effect_sizes)
 
 # output it in R database
 library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.db")
+con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
 dbWriteTable(con, "my_table", appliances, overwrite = TRUE)
 dbDisconnect(con)
 ```
@@ -318,7 +318,7 @@ dbDisconnect(con)
 ```{r}
 # appliances <- read.xlsx("appliances_clean.xlsx")
 library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.db")
+con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
 appliances <- dbReadTable(con, "my_table")
 dbDisconnect(con)
 ```

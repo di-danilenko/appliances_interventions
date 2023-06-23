@@ -18,6 +18,8 @@ library(writexl)
 library(openxlsx)
 library(dplyr)
 library(stringr)
+library(wesanderson)
+library(ggrepel)
 options(scipen = 999)
 ```
 
@@ -28,12 +30,13 @@ data_usage <- data.frame()
 data_usage <- appliances %>% 
                   filter(dep_variable_purchase_category == "energy use after switching to a more efficient appliance")
 # exclude the outliers
-data_usage <- data_usage %>% 
-                  filter(coefficient > -2,
-                      coefficient < 2)
-data_usage <- data_usage %>% 
-                  filter(percent_change > -2,
-                     percent_change < 2)
+# data_usage <- data_usage %>% 
+                  # filter(coefficient > -2,
+                      # coefficient < 2)
+# data_usage <- data_usage %>% 
+                  # filter(percent_change > -2,
+                    # percent_change < 2)
+
 ```
 
 ```{r}
@@ -42,6 +45,17 @@ data_usage$percent_change <- ifelse(is.na(data_usage$percent_change),
                                     data_usage$percent_change)
 
 data_usage$percent_change <- data_usage$percent_change*100
+
+data_usage$percent_change_ci <- ifelse(data_usage$study_ID == "130",
+                                       data_usage$coefficient_se*100/8260.69,
+                                       ifelse(data_usage$study_ID == "140",
+                                              data_usage$coefficient_se*100/437.369,
+                                              data_usage$coefficient_se*100)
+                                       )
+data_usage <- data_usage %>% 
+                  filter(percent_change > -25,
+                    percent_change < 25)
+
 ```
 
 ```{r}
@@ -61,13 +75,40 @@ summary_stats <- data_usage %>%
     max_percent_change = max(percent_change),
     mean_coefficient = mean(coefficient),
     min_coefficient = min(coefficient),
-    max_coefficient = max(coefficient)
+    max_coefficient = max(coefficient),
+    #mean_tstat = mean(t_stat),
+    mean_tstat_abs = mean(abs(t_stat))
   )
 
 # Print the summary statistics
 print(summary_stats)
-
 ```
+
+```{r}
+
+### FOREST PLOTS ### 
+fp <- ggplot(data=data_usage, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = appliance)) +
+        geom_pointrange(size=0.5) + 
+        geom_hline(yintercept=1, lty=2) +  # add a dotted line at x=1 after flip
+        coord_flip() +  # flip coordinates (puts labels on y axis)
+        xlab("Authors") + ylab("Mean Percentage Change") +
+        theme_bw()  + geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 2, colour = "black", max.overlaps = 15)
+print(fp)
+
+# we can average by author
+# or average by appliance
+
+### FREQUENCY TABLES AND DISTRIBUTIONS
+ggplot(data_usage, aes(x = percent_change, y = percent_change_ci , colour = appliance)) +
+  # scale_y_continuous(limits = c(-0.05,.5))+
+  geom_point(size = 2, alpha = 0.25) +
+  #geom_jitter(width = .1, alpha = .25) +
+  labs(x = "percent_change", y = "variance") +
+  facet_wrap(vars(data_usage$intervention))+ 
+  theme_bw()
+```
+```
+
 
 ```{r}
 ### MULTI-LEVEL MODEL ###
@@ -397,8 +438,6 @@ forest.meta(m.gen_usage_ac,
            col.random = "Red",
            xlab = "Effect Sizes",
            col.square = "Blue")
-
- 
 ```
 
 ```{r}
