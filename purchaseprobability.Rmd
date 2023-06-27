@@ -6,17 +6,13 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-HEAD
-setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
+# setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
+setwd("/Users/khat/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
 # load data
-load(file="C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.R")
-
-# setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
-setwd("/Users/khat/Documents/GitHub/appliances_interventions")
-
+load(file="appliances_clean.R")
 ```
 
 ```{r}
@@ -114,24 +110,6 @@ data_wtp <- appliances %>%
 data_wtp <- data_wtp %>% 
                   filter(z_value > -0.5,
                          z_value < 0.5)
-```
-
-```{r}
-# create a list of control variables
-controlvars <- c("continent",
-                   "statistical_technique",
-                   "study_design",
-                   "incentive_follow_through",
-                   "experimental_setting",
-                   "participant_type",
-                 "aware_of_study",
-                 "opt_in",
-                 "randomisation_dummy",
-                 "outOfSampleBias",
-                 "reportingBiases",
-                 "controls_energy_prices",
-                 "controls_environmental_attitudes",
-                 "controls_demographics")
 ```
 
 ```{r}
@@ -499,6 +477,30 @@ summary(meta_model6_1)
 
 
 ```{r}
+# create a list of control variables
+controlvars <- c( "intervention", "appliance")
+                 # "continent",
+                 # "statistical_technique",
+                 #   "study_design",
+                 #   "incentive_follow_through",
+                 #   "experimental_setting",
+                 #   "participant_type",
+                 # "aware_of_study",
+                 # "opt_in",
+                 # "randomisation_dummy",
+                 # "outOfSampleBias",
+                 # "reportingBiases")
+                 # "controls_energy_prices",
+                 # "controls_environmental_attitudes",
+                 # "controls_demographics")
+
+metregvar <- c("z_value")
+dfbms <- data_purchase3 %>%  select(all_of(metregvar))
+dfbms <- mutate_if(dfbms, is.character, as.numeric)
+dfbms <- mutate_if(dfbms, is.logical, as.numeric)
+```
+
+```{r}
 
 # create binary variables for all control factor variables
 
@@ -510,18 +512,33 @@ for (var_name in controlvars) {
   levels <- unique(data_purchase3[[var_name]])
   
   # create binary variables for each factor level
-  for (level in levels) {
+  for (level in levels[-1]) {
     # create a new column name by appending the factor level to the variable name
     new_col_name <- paste(var_name, level, sep = "_")
     
     # create a binary variable for the current factor level
-    data_purchase3[[new_col_name]] <- as.integer(data_purchase3[[var_name]] == level)
+    dfbms[[new_col_name]] <- as.numeric(data_purchase3[[var_name]] == level)
   }
 }
+summary(dfbms)
 
+# dfbms <- dfbms %>% select(-c(intervention_Information, appliance_Lighting))
 ```
 
+```{r}
+library(BMS)
+percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000, mcmc="bd", user.int=FALSE)
+# percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
+# percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
+# percent3 = bms(dfbms, burn=1e5,iter=3e5, g="hyper=BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 
+coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, include.constant=T))
+print(coef)
+# image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+
+
+
+```
 
 
 ```{r}
