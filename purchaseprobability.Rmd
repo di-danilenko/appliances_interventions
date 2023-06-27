@@ -478,23 +478,25 @@ summary(meta_model6_1)
 
 ```{r}
 # create a list of control variables
-controlvars <- c( "intervention", "appliance")
+controlvars <- c( 
+                 # "intervention", 
+                    "appliance",
                  # "continent",
                  # "statistical_technique",
-                 #   "study_design",
-                 #   "incentive_follow_through",
-                 #   "experimental_setting",
-                 #   "participant_type",
-                 # "aware_of_study",
-                 # "opt_in",
-                 # "randomisation_dummy",
-                 # "outOfSampleBias",
-                 # "reportingBiases")
-                 # "controls_energy_prices",
-                 # "controls_environmental_attitudes",
-                 # "controls_demographics")
+                   "study_design",
+                   "incentive_follow_through",
+                   "experimental_setting",
+                   # "participant_type",
+                 "aware_of_study",
+                 "opt_in",
+                 "randomisation_dummy",
+                 "outOfSampleBias",
+                 "reportingBiases",
+                 "controls_energy_prices",
+                 "controls_environmental_attitudes",
+                 "controls_demographics")
 
-metregvar <- c("z_value")
+metregvar <- c("z_value", "z_variance")
 dfbms <- data_purchase3 %>%  select(all_of(metregvar))
 dfbms <- mutate_if(dfbms, is.character, as.numeric)
 dfbms <- mutate_if(dfbms, is.logical, as.numeric)
@@ -521,6 +523,9 @@ for (var_name in controlvars) {
   }
 }
 summary(dfbms)
+new_order <- sort(colnames(dfbms))
+dfbms <- dfbms[, new_order]
+
 
 # dfbms <- dfbms %>% select(-c(intervention_Information, appliance_Lighting))
 ```
