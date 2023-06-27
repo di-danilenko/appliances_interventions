@@ -141,8 +141,12 @@ controlvars <- c("continent",
 
 # Step 1: Create a meta-analysis model
 meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
+meta_model2 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ appliance+0)
+# dishwasher and heat pump are showing insignificant negative results
+meta_model3 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ intervention+0)
+meta_model4 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ appliance+0)
+# clothes dryer and dishwasher show insignificant negative results
 
-data_purchase_dishwasher <- data_purchase %>% 
 # Step 2: Fit the meta-analysis model
 meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
