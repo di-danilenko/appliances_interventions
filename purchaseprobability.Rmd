@@ -6,17 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
-# appliances <- read.xlsx("appliances_clean.xlsx")
-library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
-appliances <- dbReadTable(con, "my_table")
-dbDisconnect(con)
-
-# load(here("data", "meta_analysis_complete.R"))
+# load data
+load(file="C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.R")
 ```
 
 ```{r setup, include=FALSE}
