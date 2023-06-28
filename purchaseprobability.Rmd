@@ -7,18 +7,19 @@ output: html_document
 
 ```{r setup, include=FALSE}
 # setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
-setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
 # load data
-load(file="appliances_clean.R")
+load(file="C:/Users/dand/Documents/GitHub/appliances_interventions/appliances_clean.R")
+# setwd("/Users/khat/Documents/GitHub/appliances_interventions")
+
 ```
 
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggplot2)
-# library(meta)
+library(meta)
 library(metafor)
 library(metadat)
 library(haven)
@@ -28,8 +29,6 @@ library(dplyr)
 library(stringr)
 library(readxl)
 library(ggridges)
-library(BMS)
-library(corrplot)
 options(scipen = 999)
 ```
 
@@ -81,7 +80,7 @@ outlier_z_value <- outlier_z_value %>%
 ```
 
 ```{r}
-# carry out the same analysis without any exclusions
+# carry out the analysis without any exclusions
 # include WTP and purchase probability together
 data_purchase3 <- data.frame()
 # filter to a needed dependent variable
@@ -102,6 +101,24 @@ data_wtp <- appliances %>%
 data_wtp <- data_wtp %>% 
                   filter(z_value > -0.5,
                          z_value < 0.5)
+```
+
+```{r}
+# create a list of control variables
+controlvars <- c("continent",
+                   "statistical_technique",
+                   "study_design",
+                   "incentive_follow_through",
+                   "experimental_setting",
+                   "participant_type",
+                 "aware_of_study",
+                 "opt_in",
+                 "randomisation_dummy",
+                 "outOfSampleBias",
+                 "reportingBiases",
+                 "controls_energy_prices",
+                 "controls_environmental_attitudes",
+                 "controls_demographics")
 ```
 
 ```{r}
@@ -202,21 +219,21 @@ meta_model4 <- rma(z_value, z_variance, data = data_purchase3, method = "REML", 
 # AC, light, fridge, washing machine, water heater significant positive
 
 ### MULTI-LEVEL MODEL ###
-meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ dep_variable_purchase_category, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ dep_variable_purchase_category, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = appliances, method = "REML")
 
-meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category, # add all moderator variables
+meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 
 # take out outliers here and compare results
 
 #Above results show that there is no statistical difference between effect sizes for 1) wtp and purchase prob 2)monetary incentives and info strategies
 
-meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, # add all moderator variables
+meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model5)
 
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, # add all moderator variables
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model5_1)
 # random effects multi-level by intervention
@@ -242,6 +259,10 @@ control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 
 meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # contrasts can be applied only to factors with 2 or more levels
+```
+
+
+```{r}
 # Iterate over variables in the dataset
 for (var in controlvars) {
   # Check the number of levels in each variable
@@ -259,7 +280,6 @@ for (var in controlvars) {
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
 
-summary(meta_model8)
 ```
 
 ```{r}
@@ -328,6 +348,12 @@ data_purchase3 %>%
             q3 = quantile(z_value, 0.75, na.rm = T),
             max = max(z_value, na.rm = T))
 
+data_purchase3$logit <- ifelse(data_purchase3$statistical_technique == "logit", 1, 0)
+
+ggplot(data_purchase3, aes(x = z_value, y = as.factor(logit))) +
+  geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
+                       quantile_lines = TRUE, quantiles = c(0.5)) +
+  geom_jitter(height = .1, alpha = .1) 
 
 ggplot(data_purchase3, aes(x = z_value, y = as.factor(outOfSampleBias))) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
@@ -372,18 +398,15 @@ legend("topright", legend = unique_appliances, col = my_colors[1:length(unique_a
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
-meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+appliance+se+0, # add all moderator variables
+meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger1)
 
-meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+z_variance+0, # add all moderator variables
+meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger2)
 
-meta_egger3 <-rma.mv(z_value, z_variance, mods =  ~ intervention+z_variance+0, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_egger3)
-
+# 
 # # what does this do? 
 # robust(rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), 
 #                      mods = ~ v, data = dfinc5, method = "REML"), cluster = as.factor(study_ID), clubSandwich = T)
@@ -472,33 +495,6 @@ summary(meta_model6_1)
 
 
 ```{r}
-# create a list of control variables
-controlvars <- c( 
-                 "intervention",
-                 "appliance",
-                 # "continent",
-                 "OECD",
-                 "statistical_technique",
-                 "study_design",
-                 "incentive_follow_through",
-                 "experimental_setting",
-                   # "participant_type",
-                 "aware_of_study",
-                 "opt_in",
-                 "randomisation_dummy",
-                 "outOfSampleBias",
-                 "reportingBiases",
-                 "controls_energy_prices",
-                 "controls_environmental_attitudes",
-                 "controls_demographics")
-
-metregvar <- c("z_value", "z_variance")
-dfbms <- data_purchase3 %>%  select(all_of(metregvar))
-dfbms <- mutate_if(dfbms, is.character, as.numeric)
-dfbms <- mutate_if(dfbms, is.logical, as.numeric)
-```
-
-```{r}
 
 # create binary variables for all control factor variables
 
@@ -515,34 +511,13 @@ for (var_name in controlvars) {
     new_col_name <- paste(var_name, level, sep = "_")
     
     # create a binary variable for the current factor level
-    dfbms[[new_col_name]] <- as.numeric(data_purchase3[[var_name]] == level)
+    data_purchase3[[new_col_name]] <- as.integer(data_purchase3[[var_name]] == level)
   }
 }
-# summary(dfbms)
-# new_order <- sort(colnames(dfbms))
-# dfbms <- dfbms[, new_order]
-
-
-# dfbms <- dfbms %>% select(-c(intervention_Information, appliance_Lighting))
-```
-
-```{r}
-percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000, mcmc="bd", user.int=FALSE)
-# percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
-# percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
-# percent3 = bms(dfbms, burn=1e5,iter=3e5, g="hyper=BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
-
-coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
-print(coef)
-image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
-
-col<- colorRampPalette(c("red", "white", "blue"))
-M <- cor(dfbms)
-corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
-
-
 
 ```
+
+
 
 
 ```{r}

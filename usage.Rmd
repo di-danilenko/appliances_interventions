@@ -44,13 +44,17 @@ data_usage$percent_change <- ifelse(is.na(data_usage$percent_change),
                                     data_usage$coefficient,
                                     data_usage$percent_change)
 
-data_usage$percent_change <- data_usage$percent_change*100
+data_usage$percent_change <- ifelse(data_usage$study_ID == "150",
+                                    data_usage$percent_change,
+                                    data_usage$percent_change*100)
 
 data_usage$percent_change_ci <- ifelse(data_usage$study_ID == "130",
                                        data_usage$coefficient_se*100/8260.69,
                                        ifelse(data_usage$study_ID == "140",
                                               data_usage$coefficient_se*100/437.369,
-                                              data_usage$coefficient_se*100)
+                                              ifelse(data_usage$study_ID == "150",
+                                                     data_usage$coefficient_se,
+                                              data_usage$coefficient_se*100))
                                        )
 data_usage <- data_usage %>% 
                   filter(percent_change > -25,
