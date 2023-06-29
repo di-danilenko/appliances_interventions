@@ -372,16 +372,18 @@ library(lmtest)
 
 ### EGGERS TEST ###
 
+funnel(data_purchase3$z_value, 
+       v = data_purchase3$z_variance,
+       # level = c(90, 95, 99),
+       # shade = c("white", "gray55", "gray75"),
+       ylim = c(0, .3),
+       col = as.factor(data_purchase3$intervention), 
+       legend =F)
+
 # Define a color palette with enough colors for each unique appliance
 my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
 
 # Create the plot
-# funnel(data_purchase3$z_value, 
-#        v = data_purchase3$z_variance,
-#        ylim = c(0, .3),
-#        col = my_colors[as.factor(data_purchase3$intervention)], 
-#        legend = F)
-
 funnel(data_purchase3$z_value, 
        v = data_purchase3$z_variance,
        ylim = c(0, .3),
