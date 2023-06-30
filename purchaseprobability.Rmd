@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 # setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
-# setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
+setwd("/Users/khat/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
@@ -42,6 +42,10 @@ data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>% 
                   filter(dep_variable_purchase_category == "purschase (probability) of efficient appliance")
+# exclude the outliers
+data_purchase <- data_purchase %>% 
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -52,6 +56,10 @@ data_purchase1 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 # data_purchase1 <- data_purchase1 %>%
   # filter(!(appliance %in% c("Clothes Dryer", "Dishwasher")))
+# exclude the outliers
+data_purchase1 <- data_purchase1 %>% 
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -78,10 +86,22 @@ outlier_z_value <- outlier_z_value %>%
 data_purchase3 <- data.frame()
 # filter to a needed dependent variable
 data_purchase3 <- appliances %>%
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance")) %>%
-  filter(! intervention == "Loan")
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+
 count <- table(data_purchase3$intervention)
 print(count)
+```
+
+```{r}
+# WTP separately
+data_wtp <- data.frame()
+# filter to a needed dependent variable
+data_wtp <- appliances %>%
+  filter(dep_variable_purchase_category == "WTP for efficient appliance")
+# exclude the outliers
+data_wtp <- data_wtp %>% 
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -221,13 +241,25 @@ summary(meta_model7)
 control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 0"))
 meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# contrasts can be applied only to factors with 2 or more levels
+# Iterate over variables in the dataset
+for (var in controlvars) {
+  # Check the number of levels in each variable
+  num_levels <- nlevels(data_purchase3[[var]])
+  
+  # Print the variable name if it has only one level
+  if (num_levels < 2) {
+    print(paste("Variable", var, "has only one level"))
+  }
+}
+# numeric and binary variables are causing errors
 
 # effects don't change too much from inclusion of 'outliers'
 # AC results change quite a bit, although there was only one effect size on AC 
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
 
-summary(meta_model5)
+summary(meta_model8)
 ```
 
 ```{r}
@@ -445,7 +477,7 @@ controlvars <- c(
                  "intervention",
                  "appliance",
                  # "continent",
-                 "OECD",
+                 "oecd",
                  "statistical_technique",
                  "study_design",
                  "incentive_follow_through",
@@ -461,7 +493,7 @@ controlvars <- c(
                  "controls_demographics")
 
 metregvar <- c("z_value", "z_variance")
-dfbms <- data_purchase3 %>%  select(all_of(metregvar))
+dfbms <- data_purchase3  %>% select(all_of(metregvar))
 dfbms <- mutate_if(dfbms, is.character, as.numeric)
 dfbms <- mutate_if(dfbms, is.logical, as.numeric)
 ```
@@ -474,11 +506,10 @@ dfbms <- mutate_if(dfbms, is.logical, as.numeric)
 for (var_name in controlvars) {
   
   # get unique factor levels
-  
   levels <- unique(data_purchase3[[var_name]])
   
   # create binary variables for each factor level
-  for (level in levels[-1]) {
+  for (level in levels) {
     # create a new column name by appending the factor level to the variable name
     new_col_name <- paste(var_name, level, sep = "_")
     
@@ -486,12 +517,29 @@ for (var_name in controlvars) {
     dfbms[[new_col_name]] <- as.numeric(data_purchase3[[var_name]] == level)
   }
 }
+
+# Setting the reference category for each variable
+dfbms <- dfbms %>% select(-c(
+          intervention_Information, #intervention
+          appliance_Refrigerator, #appliance
+          `oecd_OECD country`, #oecd
+          `statistical_technique_linear probability model`, #statistical tech statistical_technique_logit
+          `study_design_pre and post`, #study design
+          `incentive_follow_through_self-reported behaviour`, #incentive follow through
+          experimental_setting_household, #experimental setting
+          aware_of_study_0, # awareness
+          `opt_in_no such option`, #opt
+          randomisation_dummy_1,
+          `outOfSampleBias_probably no`,
+          `reportingBiases_probably no`,
+          controls_energy_prices_0,
+          controls_environmental_attitudes_0,
+          controls_demographics_0
+          ))
+
+
 # summary(dfbms)
-# new_order <- sort(colnames(dfbms))
-# dfbms <- dfbms[, new_order]
 
-
-# dfbms <- dfbms %>% select(-c(intervention_Information, appliance_Lighting))
 ```
 
 ```{r}
@@ -502,11 +550,11 @@ percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000,
 
 coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
 print(coef)
-image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+# image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
 
-col<- colorRampPalette(c("red", "white", "blue"))
-M <- cor(dfbms)
-corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
+# col<- colorRampPalette(c("red", "white", "blue"))
+# M <- cor(dfbms)
+# corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
 
 
 
