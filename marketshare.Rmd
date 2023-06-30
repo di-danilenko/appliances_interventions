@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+#setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 
@@ -23,6 +23,7 @@ library(dplyr)
 library(stringr)
 library(readxl)
 options(scipen = 999)
+load("appliances_clean.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -50,11 +51,13 @@ data_marketshare$percent_change <- data_marketshare$percent_change*100
 # data_marketshare <- data_marketshare %>%
  # filter(! data_marketshare$study_ID %in% c("114","202"))
 
-data_marketshare$percent_change_ci <- data_marketshare$coefficient_se*100
+data_marketshare$percent_change_ci <-  ifelse(data_marketshare$study_ID == "114",
+                                       data_marketshare$percent_change/abs(data_marketshare$t_stat),
+                                       data_marketshare$coefficient_se*100)
 
-data_marketshare <- data_marketshare %>% 
-                  filter(percent_change > -50,
-                    percent_change < 50)
+#data_marketshare <- data_marketshare %>% 
+                  #filter(percent_change > -50,
+                   # percent_change < 50)
 
 unique_studies_marketshare <- unique(data_marketshare$study_ID)
 ```
@@ -71,21 +74,24 @@ summary_stats <- data_marketshare %>%
     mean_percent_change = mean(percent_change),
     min_percent_change = min(percent_change),
     max_percent_change = max(percent_change),
-    mean_coefficient = mean(coefficient),
-    min_coefficient = min(coefficient),
-    max_coefficient = max(coefficient),
+    #mean_coefficient = mean(coefficient),
+    #min_coefficient = min(coefficient),
+    #max_coefficient = max(coefficient),
     #mean_tstat = mean(t_stat),
     mean_tstat_abs = mean(abs(t_stat))
   )
 
 # Print the summary statistics
 print(summary_stats)
+
+# dishwasher - negative (Datta & Gulati)
+# refrigerator - crazy tstat 
 ```
 
 ```{r}
 
 ### FOREST PLOTS ### 
-fp <- ggplot(data=data_marketshare, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = appliance)) +
+fp <- ggplot(data=data_marketshare, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = intervention)) +
         geom_pointrange(size=0.5) + 
         geom_hline(yintercept=1, lty=2) +  # add a dotted line at x=1 after flip
         coord_flip() +  # flip coordinates (puts labels on y axis)

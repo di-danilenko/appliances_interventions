@@ -57,8 +57,8 @@ data_usage$percent_change_ci <- ifelse(data_usage$study_ID == "130",
                                               data_usage$coefficient_se*100)
                                        )
 data_usage <- data_usage %>% 
-                  filter(percent_change > -25,
-                   percent_change < 25)
+                 filter(percent_change > -25,
+                  percent_change < 25)
 
 ```
 
@@ -77,9 +77,9 @@ summary_stats <- data_usage %>%
     mean_percent_change = mean(percent_change),
     min_percent_change = min(percent_change),
     max_percent_change = max(percent_change),
-    mean_coefficient = mean(coefficient),
-    min_coefficient = min(coefficient),
-    max_coefficient = max(coefficient),
+    #mean_coefficient = mean(coefficient),
+    #min_coefficient = min(coefficient),
+    #max_coefficient = max(coefficient),
     #mean_tstat = mean(t_stat),
     mean_tstat_abs = mean(abs(t_stat))
   )
@@ -93,7 +93,7 @@ print(summary_stats)
 ```{r}
 
 ### FOREST PLOTS ### 
-fp <- ggplot(data=data_usage, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = appliance)) +
+fp <- ggplot(data=data_usage, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = intervention)) +
         geom_pointrange(size=0.5) + 
         geom_hline(yintercept=1, lty=2) +  # add a dotted line at x=1 after flip
         coord_flip() +  # flip coordinates (puts labels on y axis)

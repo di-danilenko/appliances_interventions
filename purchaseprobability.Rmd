@@ -42,10 +42,6 @@ data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>% 
                   filter(dep_variable_purchase_category == "purschase (probability) of efficient appliance")
-# exclude the outliers
-data_purchase <- data_purchase %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
 ```
 
 ```{r}
@@ -56,10 +52,6 @@ data_purchase1 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 # data_purchase1 <- data_purchase1 %>%
   # filter(!(appliance %in% c("Clothes Dryer", "Dishwasher")))
-# exclude the outliers
-data_purchase1 <- data_purchase1 %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
 ```
 
 ```{r}
@@ -86,22 +78,10 @@ outlier_z_value <- outlier_z_value %>%
 data_purchase3 <- data.frame()
 # filter to a needed dependent variable
 data_purchase3 <- appliances %>%
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
-
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance")) %>%
+  filter(! intervention == "Loan")
 count <- table(data_purchase3$intervention)
 print(count)
-```
-
-```{r}
-# WTP separately
-data_wtp <- data.frame()
-# filter to a needed dependent variable
-data_wtp <- appliances %>%
-  filter(dep_variable_purchase_category == "WTP for efficient appliance")
-# exclude the outliers
-data_wtp <- data_wtp %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
 ```
 
 ```{r}
@@ -241,25 +221,13 @@ summary(meta_model7)
 control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 0"))
 meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# contrasts can be applied only to factors with 2 or more levels
-# Iterate over variables in the dataset
-for (var in controlvars) {
-  # Check the number of levels in each variable
-  num_levels <- nlevels(data_purchase3[[var]])
-  
-  # Print the variable name if it has only one level
-  if (num_levels < 2) {
-    print(paste("Variable", var, "has only one level"))
-  }
-}
-# numeric and binary variables are causing errors
 
 # effects don't change too much from inclusion of 'outliers'
 # AC results change quite a bit, although there was only one effect size on AC 
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
 
-summary(meta_model8)
+summary(meta_model5)
 ```
 
 ```{r}
