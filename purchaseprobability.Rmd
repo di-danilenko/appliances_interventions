@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 # setwd("C:/Users/dand/Documents/GitHub/appliances_interventions")
-setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
+# setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
