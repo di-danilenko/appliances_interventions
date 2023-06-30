@@ -21,6 +21,7 @@ library(stringr)
 library(wesanderson)
 library(ggrepel)
 options(scipen = 999)
+load("appliances_clean.R")
 ```
 
 ```{r}
@@ -36,6 +37,9 @@ data_usage <- appliances %>%
 # data_usage <- data_usage %>% 
                   # filter(percent_change > -2,
                     # percent_change < 2)
+data_usage <- data_usage %>% 
+                  filter(! study_ID == "313")
+
 unique_studies_usage <- unique(data_usage$study_ID)
 ```
 
@@ -54,7 +58,7 @@ data_usage$percent_change_ci <- ifelse(data_usage$study_ID == "130",
                                        )
 data_usage <- data_usage %>% 
                   filter(percent_change > -25,
-                    percent_change < 25)
+                   percent_change < 25)
 
 ```
 
