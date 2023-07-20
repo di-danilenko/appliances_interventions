@@ -18,7 +18,7 @@ load(file="appliances_clean.R")
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggplot2)
-# library(meta)
+library(meta)
 library(metafor)
 library(metadat)
 library(haven)
@@ -210,7 +210,7 @@ summary(meta_model6)
 
 ### INTERACTION INTERVENTION X APPLIANCE ###
 data_purchase4 <- data_purchase3 %>%
-  filter(appliance %in% c("Refrigerator", "Lighting", "Washing Machine"))
+  filter(appliance %in% c("Air-Conditioner","Refrigerator", "Lighting", "Washing Machine"))
 
 meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase4, method = "REML")
@@ -227,7 +227,7 @@ meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
 
-summary(meta_model5)
+summary(meta_model7)
 ```
 
 ```{r}
@@ -314,29 +314,26 @@ library(lmtest)
 
 ### EGGERS TEST ###
 
-funnel(data_purchase3$z_value, 
-       v = data_purchase3$z_variance,
-       # level = c(90, 95, 99),
-       # shade = c("white", "gray55", "gray75"),
-       ylim = c(0, .3),
-       col = as.factor(data_purchase3$intervention), 
-       legend =F)
-
 # Define a color palette with enough colors for each unique appliance
 my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
 
-# Create the plot
-funnel(data_purchase3$z_value, 
-       v = data_purchase3$z_variance,
-       ylim = c(0, .3),
-       col = my_colors[as.factor(data_purchase3$appliance)], 
-       legend = FALSE)
+funnel(
+  data_purchase3$z_value, 
+  v = data_purchase3$z_variance,
+  ylim = c(0, 0.3),
+  col = my_colors[as.factor(data_purchase3$appliance)], 
+  legend = FALSE # We'll create the legend manually
+)
 
-# Get unique appliance values
-unique_appliances <- unique(data_purchase3$appliance)
+# Create the legend manually using the legend() function
+legend("topright", # Position of the legend
+       legend = levels(as.factor(data_purchase3$appliance)), # Legend labels
+       col = my_colors, # Legend colors
+       pch = 15, # Point type (change if needed)
+       title = "Appliance" # Legend title (change if needed)
+)
 
-# Add the legend
-legend("topright", legend = unique_appliances, col = my_colors[1:length(unique_appliances)], pch = 1)
+### 
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
