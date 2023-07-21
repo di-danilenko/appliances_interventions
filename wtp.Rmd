@@ -31,12 +31,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-applianceswtp <- read_xlsx("appliances_wtp.xlsx", sheet = "Appliances")
-applianceswtp$z_value <- as.numeric(applianceswtp$z_value)
-applianceswtp$z_value <- ifelse(applianceswtp$effect_direction == "decrease",
-                                   -applianceswtp$z_value,
-                                   applianceswtp$z_value)
-applianceswtp$z_variance <- as.numeric(applianceswtp$z_variance)
+data_wtp <- appliances %>% filter(dep_variable_purchase_category == "WTP for efficient appliance")
 ```
 
 ```{r}
