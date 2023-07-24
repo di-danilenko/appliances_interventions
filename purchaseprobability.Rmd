@@ -6,17 +6,10 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 ```{r}
-# appliances <- read.xlsx("appliances_clean.xlsx")
-library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
-appliances <- dbReadTable(con, "my_table")
-dbDisconnect(con)
-
-# load(here("data", "meta_analysis_complete.R"))
+load("appliances_clean.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -94,6 +87,10 @@ count <- table(data_purchase3$intervention)
 print(count)
 
 unique_studies_purchase <- unique(data_purchase3$study_ID)
+
+data_purchase3 <- data_purchase3 %>%
+  filter(!intervention == "Loan")
+
 ```
 
 ```{r}
@@ -726,6 +723,40 @@ summary(meta_model8)
 ```
 
 ```{r}
+### FOREST PLOTS OF EFFECTS ###
+library(forestplot)
+# INTERVENTION
+coef_summary5 <- coef(summary(meta_model5))
+
+forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
+       slab = row.names(coef_summary5), showweights = TRUE, atransf = exp)
+
+forestplot(mean = coef_summary5$estimate, lower = coef_summary5$ci.lb, upper = coef_summary5$ci.ub, 
+       labeltext = row.names(coef_summary5), showweights = TRUE, atransf = exp, xlab = "REML estimate",
+       lwd.ci = 0.5, lty.ci = 1, clip = c(0.05, 0.175), lineheight = "lines") %>%
+  fp_set_style(box = "#1F1F1F",
+               line = "red") %>%
+  fp_decorate_graph(grid = structure(c(-.1, -.05, .05, .1,.15,.2), 
+                                     gp = gpar(lwd=0.25,lty = 2, col = "darkgrey"))) %>%
+  fp_set_zebra_style("#EFEFEF")
+
+# APPLIANCE
+
+coef_summary6 <- coef(summary(meta_model6))
+
+forestplot(mean = coef_summary6$estimate, lower = coef_summary6$ci.lb, upper = coef_summary6$ci.ub, 
+       labeltext = row.names(coef_summary6), showweights = TRUE, atransf = exp, xlab = "REML estimate",
+       lwd.ci = 0.5, lty.ci = 1, clip = c(-0.05, 0.25), lineheight = "lines") %>%
+  fp_set_style(box = "#1F1F1F",
+               line = "red") %>%
+  fp_decorate_graph(grid = structure(c(-.1, -.05, .05, .1,.15,.2), 
+                                     gp = gpar(lwd=0.25,lty = 2, col = "darkgrey"))) %>%
+  fp_set_zebra_style("#EFEFEF")
+
+```
+
+
+```{r}
 avgffect_bygroup<- filter(data_purchase3) %>%
   group_by(appliance, intervention) %>% 
   summarise(avg = mean(z_value, na.rm = TRUE))%>%
@@ -809,13 +840,21 @@ library(lmtest)
 
 ### EGGERS TEST ###
 
-funnel(data_purchase3$z_value, 
-       v = data_purchase3$z_variance,
-       # level = c(90, 95, 99),
-       # shade = c("white", "gray55", "gray75"),
-       ylim = c(0, .3),
-       col = as.factor(data_purchase3$intervention), 
-       legend =F)
+funnel(
+  data_purchase3$z_value, 
+  v = data_purchase3$z_variance,
+  ylim = c(0, 0.3),
+  col = my_colors[as.factor(data_purchase3$appliance)], 
+  legend = FALSE # We'll create the legend manually
+)
+
+# Create the legend manually using the legend() function
+legend("topright", # Position of the legend
+       legend = levels(as.factor(data_purchase3$appliance)), # Legend labels
+       col = my_colors, # Legend colors
+       pch = 15, # Point type (change if needed)
+       title = "Appliance" # Legend title (change if needed)
+)
 
 # Define a color palette with enough colors for each unique appliance
 my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
