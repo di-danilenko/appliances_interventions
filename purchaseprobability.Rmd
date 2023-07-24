@@ -647,9 +647,11 @@ summary(meta_model5)
 ### PURCHASE PROBABILITY + WTP (incl. outliers)
 ### FIXED EFFECTS ###
 meta_model1 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ intervention+0)
+summary(meta_model1)
 # fixed effects by intervention
 # all significant positive
 meta_model2 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ appliance+0)
+summary(meta_model2)
 # fixed effects by appliance
 # AC, light, fridge, tv, washing machine, water heater significant positive
 
@@ -678,7 +680,6 @@ summary(meta_model5)
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_model5_1)
 # random effects multi-level by intervention
 # information, label, rebate significant positive
 meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
@@ -686,7 +687,6 @@ meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,
 summary(meta_model6)
 # random effects multi-level by appliance
 # light, fridge, tv, washing machine significant positive
-
 
 ### INTERACTION INTERVENTION X APPLIANCE ###
 data_purchase4 <- data_purchase3 %>%
@@ -701,25 +701,11 @@ summary(meta_model7)
 control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 0"))
 meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# contrasts can be applied only to factors with 2 or more levels
-# Iterate over variables in the dataset
-for (var in controlvars) {
-  # Check the number of levels in each variable
-  num_levels <- nlevels(data_purchase3[[var]])
-  
-  # Print the variable name if it has only one level
-  if (num_levels < 2) {
-    print(paste("Variable", var, "has only one level"))
-  }
-}
-# numeric and binary variables are causing errors
-
 # effects don't change too much from inclusion of 'outliers'
 # AC results change quite a bit, although there was only one effect size on AC 
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
 
-summary(meta_model8)
 ```
 
 ```{r}
@@ -728,8 +714,8 @@ library(forestplot)
 # INTERVENTION
 coef_summary5 <- coef(summary(meta_model5))
 
-forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
-       slab = row.names(coef_summary5), showweights = TRUE, atransf = exp)
+#forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
+ #      slab = row.names(coef_summary5), showweights = TRUE, atransf = exp)
 
 forestplot(mean = coef_summary5$estimate, lower = coef_summary5$ci.lb, upper = coef_summary5$ci.ub, 
        labeltext = row.names(coef_summary5), showweights = TRUE, atransf = exp, xlab = "REML estimate",
@@ -838,6 +824,8 @@ ggplot(data_purchase3, aes(x = z_value, y = as.factor(reportingBiases))) +
 ### PUBLICATION BIAS ASSESSMENT ###
 library(lmtest)
 
+# Define a color palette with enough colors for each unique appliance
+my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
 ### EGGERS TEST ###
 
 funnel(
@@ -855,22 +843,6 @@ legend("topright", # Position of the legend
        pch = 15, # Point type (change if needed)
        title = "Appliance" # Legend title (change if needed)
 )
-
-# Define a color palette with enough colors for each unique appliance
-my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
-
-# Create the plot
-funnel(data_purchase3$z_value, 
-       v = data_purchase3$z_variance,
-       ylim = c(0, .3),
-       col = my_colors[as.factor(data_purchase3$appliance)], 
-       legend = FALSE)
-
-# Get unique appliance values
-unique_appliances <- unique(data_purchase3$appliance)
-
-# Add the legend
-legend("topright", legend = unique_appliances, col = my_colors[1:length(unique_appliances)], pch = 1)
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 

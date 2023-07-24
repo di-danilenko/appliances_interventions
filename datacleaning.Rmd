@@ -305,27 +305,8 @@ print(average_num_effect_sizes)
 ```
 
 ```{r}
-# write the clean dataset into an excel file
-# write.xlsx(appliances, file="appliances_clean.xlsx")
-
-# output it in R database
-library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
-dbWriteTable(con, "my_table", appliances, overwrite = TRUE)
-dbDisconnect(con)
-```
-
-```{r}
-# appliances <- read.xlsx("appliances_clean.xlsx")
-library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
-appliances <- dbReadTable(con, "my_table")
-dbDisconnect(con)
-```
-
-```{r}
-# count unique study_IDs
-unique_studies <- unique(appliances$study_ID)
+# write the clean dataset into an R database
+save(appliances, file = "appliances_clean.R")
 ```
 
 
