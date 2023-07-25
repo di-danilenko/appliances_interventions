@@ -802,31 +802,28 @@ ggplot(data_purchase3, aes(x = z_value, y = as.factor(reportingBiases))) +
 ### PUBLICATION BIAS ASSESSMENT ###
 library(lmtest)
 
-### EGGERS TEST ###
-
-funnel(data_purchase3$z_value, 
-       v = data_purchase3$z_variance,
-       # level = c(90, 95, 99),
-       # shade = c("white", "gray55", "gray75"),
-       ylim = c(0, .3),
-       col = as.factor(data_purchase3$intervention), 
-       legend =F)
+### EGGERS TEST ### 
 
 # Define a color palette with enough colors for each unique appliance
 my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
 
-# Create the plot
-funnel(data_purchase3$z_value, 
-       v = data_purchase3$z_variance,
-       ylim = c(0, .3),
-       col = my_colors[as.factor(data_purchase3$appliance)], 
-       legend = FALSE)
+### FUNNEL PLOT ###
 
-# Get unique appliance values
-unique_appliances <- unique(data_purchase3$appliance)
+funnel(
+  data_purchase3$z_value, 
+  v = data_purchase3$z_variance,
+  ylim = c(0, 0.3),
+  col = my_colors[as.factor(data_purchase3$appliance)], 
+  legend = FALSE # We'll create the legend manually
+)
 
-# Add the legend
-legend("topright", legend = unique_appliances, col = my_colors[1:length(unique_appliances)], pch = 1)
+# Create the legend manually using the legend() function
+legend("topright", # Position of the legend
+       legend = levels(as.factor(data_purchase3$appliance)), # Legend labels
+       col = my_colors, # Legend colors
+       pch = 15, # Point type (change if needed)
+       title = "Appliance" # Legend title (change if needed)
+)
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
@@ -838,7 +835,7 @@ meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all mode
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger2)
 
-# 
+
 # # what does this do? 
 # robust(rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), 
 #                      mods = ~ v, data = dfinc5, method = "REML"), cluster = as.factor(study_ID), clubSandwich = T)
