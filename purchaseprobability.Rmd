@@ -269,7 +269,15 @@ summary(meta_model7)
 
 coef_summary5 <- coef(summary(meta_model5))
 forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
-       slab = row.names(coef_summary5), showweights = F, atransf = F, xlab = "z-value")
+       slab = row.names(coef_summary5), showweights = F, atransf = F, shade="zebra",xlab = "z-value")
+
+library(stringr)
+
+# Extract the part of row names that starts with a capital letter
+new_row_names <- str_extract(row.names(coef_summary5), "[:upper:]")
+
+# Set the new row names
+rownames(coef_summary5) <- c("Information","Label","Rebate","Subsidy")
 
 coef_summary6 <- coef(summary(meta_model6))
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
@@ -278,6 +286,23 @@ forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub,
        slab = row.names(coef_summary6), showweights = TRUE, atransf = F,  shade="zebra", xlab = "z-value")
 
+### from bi ###
+ggplot(coef_summary5,
+  aes(x = estimate, y = estimate)) +
+  #scale_y_continuous(limits = c(-0.05,.5))+
+  geom_point(size = 2) +
+  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
+                 size = .5, alpha = 1, colour = "red")  + 
+  labs(x = "", y = "") +
+  #geom_hline(yintercept = coef_summary5$estimate, color = "grey") +
+  geom_text(aes(coef_summary5$estimate,0), label = row.names(coef_summary5), hjust = 0, vjust = 2, size = 4) +
+  theme_bw()+
+  theme(text = element_text(size=7)) 
+  #theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+
+color <- c('Social+Monetary+Feedback', 'Feedback+Monetary+Motivation','Social+Feedback+Motivation', 'Feedback+Social',
+           'Feedback+Motivation', 'Feedback+Information', 'Social+Information')
 ```
 
 
