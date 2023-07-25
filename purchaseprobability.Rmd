@@ -148,6 +148,7 @@ data_purchase_tv <- data_purchase %>%
 ```
 
 ```{r}
+### ANALYSIS BY APPLIANCE ###
 ### RANDOM EFFECTS MODEL ###
 ##washing machine
 m.gen_purchase_washing <- metagen(TE = z_value,
@@ -193,456 +194,16 @@ forest.meta(m1.gen_purchase_washing,
            col.square = "Blue")       
 ```
 
-
 ```{r}
-##dishwasher
-### RANDOM EFFECTS ###
-m.gen_purchase_dishwasher <- metagen(data = data_purchase_dishwasher,
-                                  TE = z_value,
-                                  seTE = z_variance,
-                                  studlab = authors,
-                                  sm = "ZCOR",
-                                  fixed = FALSE,
-                                  random = TRUE,
-                                  backtransf = F)
-
-## forest plot of purchase
-png(file = "forestplot_dishwasher_random.png", width = 5000, height = 2000, res = 500)
-forest.meta(m.gen_purchase_dishwasher,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_purchase_dishwasher <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_dishwasher,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F)
-## forest plot of purchase
-png(file = "forestplot_dishwasher_fixed.png", width = 5000, height = 2000, res = 500)
-forest.meta(m1.gen_purchase_dishwasher,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
- 
-```
-
-
-```{r}
-##refrigerator
-### RANDOM EFFECTS ###
-m.gen_purchase_refrigerator <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_refrigerator,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_refrigerator_random.png", width = 7000, height = 3500, res = 500)
-forest.meta(m.gen_purchase_refrigerator,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_purchase_refrigerator <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_refrigerator,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F)
-## forest plot of purchase
-png(file = "forestplot_refrigerator_fixed.png", width = 7000, height = 3500, res = 500)
-forest.meta(m1.gen_purchase_refrigerator,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
- 
-           
-```
-
-```{r}
-##heatpump
-### RANDOM EFFECTS ### 
-m.gen_purchase_heat_pump <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_heat_pump,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-png(file = "forestplot_heatpump_random.png", width = 5000, height = 1800, res = 500)
-forest.meta(m.gen_purchase_heat_pump,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ### 
-
-m1.gen_purchase_heat_pump <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_heat_pump,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F)
-## forest plot of purchase
-png(file = "forestplot_heat_pump_fixed.png", width = 5000, height = 2000, res = 500)
-forest.meta(m1.gen_purchase_heat_pump,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
- 
-
- 
-```
-
-
-```{r}
-##lighting
-### RANDOM EFFECTS ###
-m.gen_purchase_lighting <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_lighting,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_lighting_random.png", width = 7000, height = 3500, res = 500)
-forest.meta(m.gen_purchase_lighting,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-
-m1.gen_purchase_lighting <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_lighting,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_lighting_fixed.png", width = 7000, height = 3500, res = 500)
-forest.meta(m1.gen_purchase_lighting,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
- 
-
-```
-
-
-```{r}
-##waterheater
-### RANDOM EFFECTS ###
-m.gen_purchase_water <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_water,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_water_random.png", width = 5500, height = 4500, res = 500)
-forest.meta(m.gen_purchase_water,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_purchase_water <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_water,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_water_fixed.png", width = 5500, height = 4500, res = 500)
-forest.meta(m1.gen_purchase_water,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-```
-
-```{r}
-## tv
-### RANDOM EFFECTS ###
-m.gen_purchase_tv <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_tv,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_tv_random.png", width = 5500, height = 2600, res = 500)
-forest.meta(m.gen_purchase_tv,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_purchase_tv <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_tv,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_tv_fixed.png", width = 5500, height = 2600, res = 500)
-forest.meta(m1.gen_purchase_tv,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-```
-
-
-```{r}
-##airconditioning
-### RANDOM EFFECTS ###
-m.gen_purchase_ac <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_ac,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_air_random.png", width = 5500, height = 3000, res = 500)
-forest.meta(m.gen_purchase_ac,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_purchase_ac <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_ac,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_air_fixed.png", width = 5500, height = 3000, res = 500)
-forest.meta(m1.gen_purchase_ac,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-```
-
-```{r}
-## dryer
-### RANDOM EFFECTS ###
-m.gen_purchase_dryer <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_dryer,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_dryer_random.png", width = 5500, height = 2600, res = 500)
-forest.meta(m.gen_purchase_dryer,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS ###
-m1.gen_purchase_dryer <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_dryer,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_dryer_fixed.png", width = 5500, height = 2600, res = 500)
-forest.meta(m1.gen_purchase_dryer,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-```
-
-```{r}
-### MULTI-LEVEL MODEL ###
-# on purchase probability only
-# redundant predictors dropped from the model
-
-# Step 1: Create a meta-analysis model
-meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
-meta_model2 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ appliance+0)
-# dishwasher and heat pump are showing insignificant negative results
-meta_model3 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ intervention+0)
-meta_model4 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ appliance+0)
-# clothes dryer and dishwasher show insignificant negative results
-
-# Step 2: Fit the meta-analysis model
-meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-# make graphs from this
-summary(meta_model1)
-# fixed effects by intervention
-# feedback, label, rebate and subsidy significant positive
-summary(meta_model2)
-# fixed effects by appliance
-# AC, light, fridge, tv, washing machine significant positive
-summary(meta_model3)
-# random effects by intervention
-# all apart from loan significant positive
-summary(meta_model4)
-# random effects by appliance
-# AC, light, washing machine, water heater significant positive
-summary(meta_model5)
-# random effects multi-level by intervention
-# all apart from loan significant positive
-summary(meta_model6)
-# random effects multi-level by appliance
-# AC, light, fridge, tv, washing machine, water heater significant positive
-
-# most of the interventions / appliances that do not show significant effects are very small in sample size
-```
-
-```{r}
-### PURCHASE PROBABILITY + WTP (excl. outliers)
-### FIXED EFFECTS ###
-meta_model1 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ intervention+0)
-# fixed effects by intervention
-# feedback, label, rebate, subsidy significant positive
-meta_model2 <- rma(z_value, z_variance, data = data_purchase1, method = "FE", mods = ~ appliance+0)
-# fixed effects by appliance
-# AC, light, fridge, tv, washing machine, water heater significant positive
-
-### RANDOM EFFECTS ###
-meta_model3 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ intervention+0)
-# random effects by intervention
-# feedback, information, label, rebate, subsidy significant positive
-meta_model4 <- rma(z_value, z_variance, data = data_purchase1, method = "REML", mods = ~ appliance+0)
-# random effects by appliance
-# AC, light, fridge, washing machine, water heater significant positive
-
-### MULTI-LEVEL MODEL ###
-meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention + 0, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
-# random effects multi-level by intervention
-# feedback, information, label, rebate, subsidy significant positive
-meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
-# random effects multi-level by appliance
-# AC, light, fridge, tv, washing machine, water heater significant positive
-
-### INTERACTION INTERVENTION X APPLIANCE ###
-data_purchase2 <- data_purchase1 %>%
-  filter(appliance %in% c("Refrigerator", "Air-Conditioner", "Water Heater"))
-
-meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
-# economic incentives x refrigerator have a negative sign  
-summary(meta_model5)
-```
-
-```{r}
+### META-ANALYSIS ###
 ### PURCHASE PROBABILITY + WTP (incl. outliers)
+
 ### FIXED EFFECTS ###
 meta_model1 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ intervention+0)
 summary(meta_model1)
 # fixed effects by intervention
 # all significant positive
+
 meta_model2 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ appliance+0)
 summary(meta_model2)
 # fixed effects by appliance
@@ -660,21 +221,20 @@ summary(meta_model4)
 
 ### MULTI-LEVEL MODEL ###
 
-
 #Above results show that there is no statistical difference between effect sizes for 1) wtp and purchase prob 2)monetary incentives and info strategies
 
-meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, # add all moderator variables
+meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model5)
 
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, # add all moderator variables
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # random effects multi-level by intervention
 # information, label, rebate significant positive
 meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model6)
-meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance, # add all moderator variables
+meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # random effects multi-level by appliance
 # light, fridge, tv, washing machine significant positive
@@ -703,20 +263,21 @@ summary(meta_model7)
 
 #summary(meta_model8)
 ```
+
 ```{r}
-# visualise results in a forest plot
-# this is ugly af - modify to look pretty and make sense
-coef_summary <- coef(summary(meta_model5))
-forest(coef_summary$estimate, ci.lb = coef_summary$ci.lb, ci.ub = coef_summary$ci.ub, 
-       slab = row.names(coef_summary), showweights = F, atransf = exp)
+### FOREST PLOT ### 
+
+coef_summary5 <- coef(summary(meta_model5))
+forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
+       slab = row.names(coef_summary5), showweights = F, atransf = F, xlab = "z-value")
 
 coef_summary6 <- coef(summary(meta_model6))
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
-       slab = row.names(coef_summary6), showweights = F, atransf = exp)
+       slab = row.names(coef_summary6), showweights = F, atransf = F, xlab = "z-value")
 
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub,
-       slab = row.names(coef_summary6), showweights = TRUE, atransf = exp,  shade="zebra")
-# add significance and no obs and no studies
+       slab = row.names(coef_summary6), showweights = TRUE, atransf = F,  shade="zebra", xlab = "z-value")
+
 ```
 
 
