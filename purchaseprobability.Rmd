@@ -6,17 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+#setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 ```{r}
-# appliances <- read.xlsx("appliances_clean.xlsx")
-library(RSQLite)
-con <- dbConnect(RSQLite::SQLite(), "/Users/dianadanilenko/Desktop/appliances_interventions/appliances_clean.db")
-appliances <- dbReadTable(con, "my_table")
-dbDisconnect(con)
-
-# load(here("data", "meta_analysis_complete.R"))
+load("appliances_clean.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -44,10 +38,6 @@ data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>% 
                   filter(dep_variable_purchase_category == "purschase (probability) of efficient appliance")
-# exclude the outliers
-data_purchase <- data_purchase %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
 ```
 
 ```{r}
@@ -58,10 +48,6 @@ data_purchase1 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 # data_purchase1 <- data_purchase1 %>%
   # filter(!(appliance %in% c("Clothes Dryer", "Dishwasher")))
-# exclude the outliers
-data_purchase1 <- data_purchase1 %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
 ```
 
 ```{r}
@@ -87,8 +73,12 @@ outlier_z_value <- outlier_z_value %>%
 # include WTP and purchase probability together
 data_purchase3 <- data.frame()
 # filter to a needed dependent variable
+
 data_purchase3 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+
+data_purchase3 <- data_purchase3 %>%
+  filter(! intervention == "Loan")
 
 count <- table(data_purchase3$intervention)
 print(count)
@@ -650,28 +640,26 @@ summary(meta_model5)
 ### PURCHASE PROBABILITY + WTP (incl. outliers)
 ### FIXED EFFECTS ###
 meta_model1 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ intervention+0)
+summary(meta_model1)
 # fixed effects by intervention
 # all significant positive
 meta_model2 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ appliance+0)
+summary(meta_model2)
 # fixed effects by appliance
 # AC, light, fridge, tv, washing machine, water heater significant positive
 
 ### RANDOM EFFECTS ###
 meta_model3 <- rma(z_value, z_variance, data = data_purchase3, method = "REML", mods = ~ intervention+0)
+summary(meta_model3)
 # random effects by intervention
 # information, label, rebate significant positive
 meta_model4 <- rma(z_value, z_variance, data = data_purchase3, method = "REML", mods = ~ appliance+0)
+summary(meta_model4)
 # random effects by appliance
 # AC, light, fridge, washing machine, water heater significant positive
 
 ### MULTI-LEVEL MODEL ###
-meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ dep_variable_purchase_category, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 
-meta_model0 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-
-# take out outliers here and compare results
 
 #Above results show that there is no statistical difference between effect sizes for 1) wtp and purchase prob 2)monetary incentives and info strategies
 
@@ -681,12 +669,13 @@ summary(meta_model5)
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_model5_1)
 # random effects multi-level by intervention
 # information, label, rebate significant positive
 meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model6)
+meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # random effects multi-level by appliance
 # light, fridge, tv, washing machine significant positive
 
@@ -701,20 +690,10 @@ meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:applia
 summary(meta_model7)
 
 # run a model with control variables included
-control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 0"))
-meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# contrasts can be applied only to factors with 2 or more levels
-# Iterate over variables in the dataset
-for (var in controlvars) {
-  # Check the number of levels in each variable
-  num_levels <- nlevels(data_purchase3[[var]])
-  
-  # Print the variable name if it has only one level
-  if (num_levels < 2) {
-    print(paste("Variable", var, "has only one level"))
-  }
-}
+#control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 0"))
+#meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
+                               #random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+
 # numeric and binary variables are causing errors
 
 # effects don't change too much from inclusion of 'outliers'
@@ -722,8 +701,24 @@ for (var in controlvars) {
 # Train papers show weird results for loan and z_values 
 # Skourtos paper has both high variance and z_value
 
-summary(meta_model8)
+#summary(meta_model8)
 ```
+```{r}
+# visualise results in a forest plot
+# this is ugly af - modify to look pretty and make sense
+coef_summary <- coef(summary(meta_model5))
+forest(coef_summary$estimate, ci.lb = coef_summary$ci.lb, ci.ub = coef_summary$ci.ub, 
+       slab = row.names(coef_summary), showweights = F, atransf = exp)
+
+coef_summary6 <- coef(summary(meta_model6))
+forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
+       slab = row.names(coef_summary6), showweights = F, atransf = exp)
+
+forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub,
+       slab = row.names(coef_summary6), showweights = TRUE, atransf = exp,  shade="zebra")
+# add significance and no obs and no studies
+```
+
 
 ```{r}
 avgffect_bygroup<- filter(data_purchase3) %>%
