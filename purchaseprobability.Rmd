@@ -284,22 +284,20 @@ forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary
 
 ### from bi ###
 ggplot(coef_summary5,
-       aes(x = estimate, y = estimate)) +
+       aes(x = row.names(coef_summary5), y = estimate)) +
   geom_point(size = 2) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = .5, alpha = 1, colour = "red")  + 
-  labs(x = "", y = "") +
-  geom_text(aes(x = estimate, y = (ci.lb + ci.ub)/2), label = row.names(coef_summary5), hjust = 0.5, vjust = 2, size = 4) +
+  labs(x = "", y = "z-value") +
   theme_bw() +
   theme(text = element_text(size = 7))
 
 ggplot(coef_summary6,
-       aes(x = estimate, y = estimate)) +
+       aes(x = row.names(coef_summary6), y = estimate)) +
   geom_point(size = 2) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = .5, alpha = 1, colour = "red")  + 
-  labs(x = "", y = "") +
-  geom_text(aes(x = estimate, y = (ci.lb + ci.ub)/2), label = row.names(coef_summary6), hjust = 0.5, vjust = 2, size = 4) +
+  labs(x = "", y = "z-value") +
   theme_bw() +
   theme(text = element_text(size = 7))
 ```
