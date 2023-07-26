@@ -54,7 +54,7 @@ for (file in file_names) {
   df$`controls environmental attitudes` <- as.factor(df$`controls environmental attitudes`)
   df$`controls demographics` <- as.factor(df$`controls demographics`)
   df$percent_change <- as.numeric(df$percent_change)
-  
+  df$counterfactual <- as.factor(df$counterfactual)
   data_frames <- append(data_frames, list(df))
 }
 
