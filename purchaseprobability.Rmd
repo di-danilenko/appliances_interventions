@@ -531,6 +531,81 @@ for (var_name in controlvars) {
 
 
 
+```{r}
+# create a list of control variables
+controlvars <- c( 
+                 "intervention",
+                 "appliance",
+                 # "continent",
+                 "OECD",
+                 "statistical_technique",
+                 "study_design",
+                 "incentive_follow_through",
+                 "experimental_setting",
+                   # "participant_type",
+                 "aware_of_study",
+                 "opt_in",
+                 "randomisation_dummy",
+                 "outOfSampleBias",
+                 "reportingBiases",
+                 "controls_energy_prices",
+                 "controls_environmental_attitudes",
+                 "controls_demographics")
+
+metregvar <- c("z_value", "z_variance")
+dfbms <- data_purchase3 %>%  select(all_of(metregvar))
+dfbms <- mutate_if(dfbms, is.character, as.numeric)
+dfbms <- mutate_if(dfbms, is.logical, as.numeric)
+```
+
+```{r}
+
+# BMA data preparation 
+# create binary variables for all control factor variables
+
+# iterate over each factor variable
+for (var_name in controlvars) {
+  
+  # get unique factor levels
+  
+  levels <- unique(data_purchase3[[var_name]])
+  
+  # create binary variables for each factor level
+  for (level in levels[-1]) {
+    # create a new column name by appending the factor level to the variable name
+    new_col_name <- paste(var_name, level, sep = "_")
+    
+    # create a binary variable for the current factor level
+    dfbms[[new_col_name]] <- as.numeric(data_purchase3[[var_name]] == level)
+  }
+}
+# summary(dfbms)
+# new_order <- sort(colnames(dfbms))
+# dfbms <- dfbms[, new_order]
+
+
+# dfbms <- dfbms %>% select(-c(intervention_Information, appliance_Lighting))
+```
+
+```{r}
+
+percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000, mcmc="bd", user.int=FALSE)
+# percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
+# percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
+# percent3 = bms(dfbms, burn=1e5,iter=3e5, g="hyper=BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
+
+coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
+print(coef)
+image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+
+col<- colorRampPalette(c("red", "white", "blue"))
+M <- cor(dfbms)
+corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
+
+
+
+```
+
 
 
 
