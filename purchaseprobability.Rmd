@@ -290,9 +290,10 @@ forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary
 ### from bi ###
 ggplot(coef_summary5,
        aes(x = row.names(coef_summary5), y = estimate)) +
-  geom_point(size = 2) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
-                 size = .5, alpha = 1, colour = "red")  + 
+                 size = .5, alpha = 1, colour = "red")  +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5) +
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
@@ -300,9 +301,10 @@ ggplot(coef_summary5,
 
 ggplot(coef_summary6,
        aes(x = row.names(coef_summary6), y = estimate)) +
-  geom_point(size = 2) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = .5, alpha = 1, colour = "red")  + 
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5) +
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
