@@ -84,6 +84,9 @@ count <- table(data_purchase3$intervention)
 print(count)
 
 unique_studies_purchase <- unique(data_purchase3$study_ID)
+
+count1 <- table(data_purchase3$appliance)
+print(count1)
 ```
 
 ```{r}
@@ -113,7 +116,8 @@ controlvars <- c("continent",
                  "reportingBiases",
                  "controls_energy_prices",
                  "controls_environmental_attitudes",
-                 "controls_demographics")
+                 "controls_demographics",
+                 "counterfactual")
 ```
 
 
@@ -271,11 +275,12 @@ coef_summary5 <- coef(summary(meta_model5))
 forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
        slab = row.names(coef_summary5), showweights = F, atransf = F, shade="zebra",xlab = "z-value")
 
-rownames(coef_summary5) <- c("Information","Label","Rebate","Subsidy")
-
+rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
 coef_summary6 <- coef(summary(meta_model6))
-rownames(coef_summary6) <- c("Air-Conditioner","Clothes Dryer","Dishwasher","Heat Pump","Lighting","Refrigerator","TV","Washing Machine","Water Heater")
+
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 42)")
+
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
        slab = row.names(coef_summary6), showweights = F, atransf = F, xlab = "z-value")
 
@@ -288,6 +293,7 @@ ggplot(coef_summary5,
   geom_point(size = 2) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = .5, alpha = 1, colour = "red")  + 
+  scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
   theme(text = element_text(size = 7))
@@ -297,6 +303,7 @@ ggplot(coef_summary6,
   geom_point(size = 2) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = .5, alpha = 1, colour = "red")  + 
+  scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
   theme(text = element_text(size = 7))
@@ -533,7 +540,7 @@ for (var_name in controlvars) {
 
 ```{r}
 # create a list of control variables
-controlvars <- c( 
+controlvars <- c( "counterfactual",
                  "intervention",
                  "appliance",
                  # "continent",
