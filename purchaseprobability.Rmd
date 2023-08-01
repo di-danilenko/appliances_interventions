@@ -309,6 +309,32 @@ ggplot(coef_summary6,
   theme(text = element_text(size = 7))
 ```
 
+```{r}
+
+# count unique studies per category
+
+unique_studies <- data_purchase3 %>%
+  group_by(appliance) %>%
+  summarise(unique_study_ID_count = n_distinct(study_ID))
+print(unique_studies)
+
+unique_studies1 <- data_purchase3 %>%
+  group_by(intervention) %>%
+  summarise(unique_study_ID_count = n_distinct(study_ID))
+print(unique_studies1)
+```
+
+```{r}
+# count number of interventions
+
+data_purchase3$n_interventions <- rowSums(data_purchase3[, c("information", "label", "subsidy", "rebate", "tax_credit","feedback","loan")])
+
+```
+
+
+
+
+
 
 ```{r}
 avgffect_bygroup<- filter(data_purchase3) %>%
@@ -540,7 +566,9 @@ for (var_name in controlvars) {
 
 ```{r}
 # create a list of control variables
+data_purchase3$n_interventions <- as.factor(data_purchase3$n_interventions)
 controlvars <- c( "counterfactual",
+                  "n_interventions",
                  "intervention",
                  "appliance",
                  # "continent",
