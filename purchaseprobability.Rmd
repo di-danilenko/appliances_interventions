@@ -288,23 +288,31 @@ forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary
        slab = row.names(coef_summary6), showweights = TRUE, atransf = F,  shade="zebra", xlab = "z-value")
 
 ### from bi ###
-ggplot(coef_summary5,
-       aes(x = row.names(coef_summary5), y = estimate)) +
+average_effect_size <- mean(coef_summary5$estimate)
+ggplot(coef_summary5, aes(x = row.names(coef_summary5), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
-                 size = .5, alpha = 1, colour = "red")  +
+                 size = 0.5, alpha = 1, colour = "red") +
   geom_point() +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5) +
+  #   geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5) +
+  geom_hline(yintercept = average_effect_size, linetype = "dashed", color = "darkgrey", size = 0.5) +
+   annotate("text", x = 0.5, y = average_effect_size - 0.05,
+           label = paste("Average =", round(average_effect_size, 2)), 
+           vjust = 0, hjust = -5.5, color = "black", size = 3) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
   theme(text = element_text(size = 7))
 
+average_effect_size1 <- mean(coef_summary6$estimate)
 ggplot(coef_summary6,
        aes(x = row.names(coef_summary6), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = .5, alpha = 1, colour = "red")  + 
   geom_point() +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.5) +
+  geom_hline(yintercept = average_effect_size1, linetype = "dashed", color = "darkgrey", size = 0.5) +
+   annotate("text", x = 0.5, y = average_effect_size1 - 0.05,
+           label = paste("Average =", round(average_effect_size1, 2)), 
+           vjust = 0, hjust = -4.5, color = "black", size = 3) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
@@ -332,10 +340,6 @@ print(unique_studies1)
 data_purchase3$n_interventions <- rowSums(data_purchase3[, c("information", "label", "subsidy", "rebate", "tax_credit","feedback","loan")])
 
 ```
-
-
-
-
 
 
 ```{r}
@@ -465,36 +469,27 @@ summary(meta_egger2)
 
 ```{r}
 # identify outliers
-# outliers in loan and rebate (strong negative effects)
-# outliers by variance (> 0.25)
-# outliers by z_value > 0.5 or < - 0.5
-threshold <- 0.2
 
 x5 <- cooks.distance(meta_model5)
 plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x5,labels=names(x5))
-
-above_threshold_rows5 <- which(x5 > threshold)
+threshold5 <- 0.2
+above_threshold_rows5 <- which(x5 > threshold5)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
-
-above_threshold_rows5 <- which(x5 > threshold)
-outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
+# 2
 
 x6 <- cooks.distance(meta_model6)
 plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x6,labels=names(x6))
-
-above_threshold_rows6 <- which(x6 > threshold)
+threshold6 <- 0.4
+above_threshold_rows6 <- which(x6 > threshold5)
 outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
+# 11 or 6 if we set the value to 0.4
 
 # y <- dfbetas(meta_model5, progbar=FALSE, reestimate=F, parallel="multicore")
 # plot(y$intrcpt, type="o", pch=19, xlab="Observed Outcome", ylab="DFBetas")
 
-```
-
-```{r}
-
-### 20.06.23 TESTING OUTLIERS ###
+# what are the average estimates when we exclude them
 
 data_purchase5 <- data_purchase3 %>%
   filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
@@ -512,32 +507,14 @@ meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,
 summary(meta_model5_1)
 summary(meta_model6_1)
 
-meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
-summary(meta_model0_1)
+coef_summary5_1 <- coef(summary(meta_model5_1))
+mean5_1 <- mean(coef_summary5_1$estimate)
+# 0.13
 
-data_purchase7 <- data_purchase3 %>%
-  #filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  #filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
-  filter(! intervention == "Loan") %>%
-  filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
+coef_summary6_1 <- coef(summary(meta_model6_1))
+mean6_1 <- mean(coef_summary6_1$estimate)
+# 0.13
 
-meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase7, method = "REML")
-summary(meta_model7)
-
-data_purchase3 <- data_purchase3 %>%
-  filter(! study_ID == 123) %>%
-  filter(! intervention == "Loan")
-
-data_purchase3_1 <- data_purchase3 %>%
-  filter(! sr_no %in% outlier_cooksd5)
-
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_model6_1)
 ```
 
 
