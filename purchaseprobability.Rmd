@@ -478,6 +478,8 @@ above_threshold_rows5 <- which(x5 > threshold5)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 # 2
 
+
+
 x6 <- cooks.distance(meta_model6)
 plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x6,labels=names(x6))
@@ -516,6 +518,12 @@ mean6_1 <- mean(coef_summary6_1$estimate)
 # 0.13
 
 ```
+
+```{r}
+### cov ratio ###
+
+```
+
 
 
 ```{r}
