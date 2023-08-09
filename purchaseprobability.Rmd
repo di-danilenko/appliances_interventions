@@ -34,6 +34,26 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+unique_studies <- unique(appliances$study_ID)
+unique_countries <- unique(appliances$country)
+unique_countries
+
+first_per_study <- appliances %>%
+  group_by(study_ID) %>%
+  summarise(first_total_sample_size = first(total_sample_size))
+
+sum_households <- sum(first_per_study$first_total_sample_size)
+# seems like theres one more exclusion we didnt record
+result <- appliances %>%
+  group_by(intervention_category) %>%
+  summarize(unique_study_IDs = n_distinct(study_ID))
+
+# View the result
+print(result)
+```
+
+
+```{r}
 data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>% 
@@ -468,29 +488,121 @@ summary(meta_egger2)
 # outliers in loan and rebate (strong negative effects)
 # outliers by variance (> 0.25)
 # outliers by z_value > 0.5 or < - 0.5
-threshold <- 0.2
+threshold <- 0.1
 
 x5 <- cooks.distance(meta_model5)
-plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-text(x5,labels=names(x5))
+plot(x5, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+for (i in 1:length(x5)) {
+  if (x5[i] > 0.1) {
+    text(i, x5[i], i, cex = 1, pos = 4, col = "red")
+  }
+}
+# 11, 130, 133, 134
 
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
-above_threshold_rows5 <- which(x5 > threshold)
-outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
+
+threshold6 <- 0.5
+above_threshold_rows6 <- which(x6 > threshold)
+outlier_cooksd5 <- data_purchase3[above_threshold_rows6,]
 
 x6 <- cooks.distance(meta_model6)
-plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-text(x6,labels=names(x6))
-
-above_threshold_rows6 <- which(x6 > threshold)
+plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+for (i in 1:length(x6)) {
+  if (x6[i] > threshold6) {
+    text(i, x6[i], i, cex = 1, pos = 4, col = "red")
+  }
+}
+above_threshold_rows6 <- which(x6 > threshold6)
 outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
+# 15, 130, 134, 133, 131, 126
 
 # y <- dfbetas(meta_model5, progbar=FALSE, reestimate=F, parallel="multicore")
 # plot(y$intrcpt, type="o", pch=19, xlab="Observed Outcome", ylab="DFBetas")
+```
+
+```{r}
+res5 <- rma(z_value, z_variance, mods =  ~ intervention+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# what is the difference between using rma and rma.mv
+
+# explore influence diagnostics
+sav5 <- influence(res5)
+sav5
+
+#cov.r
+plot(sav5$inf$cov.r, type = "l", xlab = "index", ylab = "cov.r",
+          xlim = c(1,203), ylim = c(0.25, 1.1))
+
+# Adding labels for values less than 0.9
+for (i in 1:length(sav5$inf$cov.r)) {
+  if (sav5$inf$cov.r[i] < 0.9) {
+    text(i, sav5$inf$cov.r[i], i, cex = 0.5, pos = 1, col = "red")
+  }
+}
+
+# including effect sizes 133, 134, 167, 11, 188 and 194 reduces precision
+
+# cook.d
+plot(sav5$inf$cook.d, type = "l", xlab = "index", ylab = "cook.d",
+          xlim = c(1,203), ylim = c(0, 1.5))
+
+# Adding labels for values above 0.75
+for (i in 1:length(sav5$inf$cook.d)) {
+  if (sav5$inf$cook.d[i] > 0.75) {
+    text(i, sav5$inf$cook.d[i], i, cex = 0.5, pos = 1, col = "red")
+  }
+}
+
+# 133 and 134 are outliers again 
+
+# Train & Atherton study - refrigerator & rebate 
+
+# this seems like an important outlier and we should test for results without this outlier
+
+# do we need to explain in the paper why outliers are like that?
+
+res6 <- rma(z_value, z_variance, mods =  ~ appliance+0, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# what is the difference between using rma and rma.mv
+
+# explore influence diagnostics for appliance-specific model
+sav6 <- influence(res6)
+sav6
+
+#cov.r
+plot(sav6$inf$cov.r, type = "l", xlab = "index", ylab = "cov.r",
+          xlim = c(1,203), ylim = c(0, 1.1))
+
+# Adding labels for values less than 0.9
+for (i in 1:length(sav6$inf$cov.r)) {
+  if (sav6$inf$cov.r[i] < 0.9) {
+    text(i, sav6$inf$cov.r[i], i, cex = 0.5, pos = 1, col = "red")
+  }
+}
+
+# including effect sizes 133, 134, 167, 11, 188 and 194 reduces precision + 143 and 132, 135
+
+# cook.d
+plot(sav6$inf$cook.d, type = "l", xlab = "index", ylab = "cook.d",
+          xlim = c(1,203), ylim = c(0, 1.5))
+
+# Adding labels for values above 0.75
+for (i in 1:length(sav6$inf$cook.d)) {
+  if (sav6$inf$cook.d[i] > 0.75) {
+    text(i, sav6$inf$cook.d[i], i, cex = 0.5, pos = 1, col = "red")
+  }
+}
+
+# 133 and 134 again
+
+# these are tested on not a ML model though
+
+
 
 ```
+
 
 ```{r}
 
@@ -516,15 +628,19 @@ meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
 summary(meta_model0_1)
 
+# both categories equally effective
+
 data_purchase7 <- data_purchase3 %>%
-  #filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  #filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
+  filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
+  filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
   filter(! intervention == "Loan") %>%
   filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
 
 meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase7, method = "REML")
 summary(meta_model7)
+
+# interesting that after dropping highly influential values, the effect of economic values on refrigerator is basically diminished but probably due to very few observations
 
 data_purchase3 <- data_purchase3 %>%
   filter(! study_ID == 123) %>%
@@ -639,9 +755,17 @@ col<- colorRampPalette(c("red", "white", "blue"))
 M <- cor(dfbms)
 corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
 
-
-
 ```
+
+```{r}
+# figures
+library(metafor)
+library(tidyverse)
+library(ggplot2)
+library(patchwork)
+library(xtable)
+```
+
 
 
 
