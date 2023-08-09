@@ -236,6 +236,18 @@ appliances$study_design <- ifelse(
   "quasi-experimental",
   appliances$study_design
 )
+
+appliances$study_design <- ifelse(
+  appliances$study_design %in% c("diff-in-diff","simulated counterfactual"),
+  "control & treatment",
+  appliances$study_design
+)
+appliances$study_design <- ifelse(
+  grepl("correlation", appliances$study_design, ignore.case = TRUE),
+  "pre and post",
+  appliances$study_design
+)
+
 appliances$study_design <- as.factor(appliances$study_design)
 ```
 

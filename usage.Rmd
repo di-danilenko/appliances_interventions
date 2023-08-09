@@ -38,7 +38,8 @@ data_usage <- appliances %>%
                   # filter(percent_change > -2,
                     # percent_change < 2)
 data_usage <- data_usage %>% 
-                  filter(! study_ID == "313")
+                 filter(! study_ID == "313")
+# this study is excluded as it doesnt disentagle appliance-specific effects
 
 unique_studies_usage <- unique(data_usage$study_ID)
 ```
