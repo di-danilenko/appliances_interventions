@@ -332,7 +332,6 @@ ggplot(coef_summary6,
 ```
 
 ```{r}
-
 # count unique studies per category
 
 unique_studies <- data_purchase3 %>%
@@ -344,19 +343,24 @@ unique_studies1 <- data_purchase3 %>%
   group_by(intervention) %>%
   summarise(unique_study_ID_count = n_distinct(study_ID))
 print(unique_studies1)
+
+unique_statt <- data_purchase3 %>%
+  group_by(statistical_technique) %>%
+  summarise(unique_study_ID_count = n_distinct(study_ID))
+print(unique_statt)
+
+unique_design <- data_purchase3 %>%
+  group_by(study_design) %>%
+  summarise(unique_study_ID_count = n_distinct(study_ID))
+print(unique_design)
+# reclassify odd study designs 
 ```
 
 ```{r}
 # count number of interventions
-
 data_purchase3$n_interventions <- rowSums(data_purchase3[, c("information", "label", "subsidy", "rebate", "tax_credit","feedback","loan")])
-
+                                          
 ```
-
-
-
-
-
 
 ```{r}
 avgffect_bygroup<- filter(data_purchase3) %>%
@@ -599,14 +603,12 @@ for (i in 1:length(sav6$inf$cook.d)) {
 
 # these are tested on not a ML model though
 
-
-
 ```
 
 
 ```{r}
 
-### 20.06.23 TESTING OUTLIERS ###
+### TESTING MODELS WITHOUT OUTLIERS ###
 
 data_purchase5 <- data_purchase3 %>%
   filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
