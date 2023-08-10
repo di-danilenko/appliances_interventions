@@ -359,7 +359,7 @@ print(unique_design)
 ```{r}
 # count number of interventions
 data_purchase3$n_interventions <- rowSums(data_purchase3[, c("information", "label", "subsidy", "rebate", "tax_credit","feedback","loan")])
-                                          
+data_purchase3$n_interventions <- as.factor(data_purchase3$n_interventions)
 ```
 
 ```{r}
@@ -467,6 +467,22 @@ legend("topright", # Position of the legend
        title = "Appliance" # Legend title (change if needed)
 )
 
+funnel(
+  data_purchase3$z_value, 
+  v = data_purchase3$z_variance,
+  ylim = c(0, 0.3),
+  col = my_colors[as.factor(data_purchase3$intervention_category)], 
+  legend = FALSE # We'll create the legend manually
+)
+
+# Create the legend manually using the legend() function
+legend("topright", # Position of the legend
+       legend = levels(as.factor(data_purchase3$intervention_category)), # Legend labels
+       col = my_colors, # Legend colors
+       pch = 15, # Point type (change if needed)
+       title = "Intervention" # Legend title (change if needed)
+)
+
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
 meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se, # add all moderator variables
@@ -506,10 +522,7 @@ for (i in 1:length(x5)) {
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
-
 threshold6 <- 0.5
-above_threshold_rows6 <- which(x6 > threshold)
-outlier_cooksd5 <- data_purchase3[above_threshold_rows6,]
 
 x6 <- cooks.distance(meta_model6)
 plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
