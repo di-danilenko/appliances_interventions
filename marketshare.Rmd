@@ -48,16 +48,17 @@ data_marketshare$percent_change <- ifelse(is.na(data_marketshare$percent_change)
 
 data_marketshare$percent_change <- data_marketshare$percent_change*100
 
-# data_marketshare <- data_marketshare %>%
- # filter(! data_marketshare$study_ID %in% c("114","202"))
+# data_marketshare <- data_marketshare %>% filter(! study_ID %in% c("114","202"))
 
 data_marketshare$percent_change_ci <-  ifelse(data_marketshare$study_ID == "114",
                                        data_marketshare$percent_change/abs(data_marketshare$t_stat),
                                        data_marketshare$coefficient_se*100)
 
 #data_marketshare <- data_marketshare %>% 
-                  #filter(percent_change > -50,
-                   # percent_change < 50)
+ #                 filter(percent_change > -50)
+                   
+#data_marketshare <- data_marketshare %>% 
+ #                 filter(percent_change < 50)
 
 unique_studies_marketshare <- unique(data_marketshare$study_ID)
 ```
@@ -65,6 +66,9 @@ unique_studies_marketshare <- unique(data_marketshare$study_ID)
 ```{r}
 # Count the occurrences
 count <- table(data_marketshare$intervention)
+print(count)
+
+count <- table(data_marketshare$appliance)
 print(count)
 
 # Group by appliance and calculate summary statistics
@@ -89,16 +93,17 @@ print(summary_stats)
 ```
 
 ```{r}
+library(ggrepel)
 
 ### FOREST PLOTS ### 
-fp <- ggplot(data=data_marketshare, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = intervention)) +
+fp <- ggplot(data=data_marketshare, aes(x=authors, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = appliance)) +
         geom_pointrange(size=0.5) + 
         geom_hline(yintercept=1, lty=2) +  # add a dotted line at x=1 after flip
         coord_flip() +  # flip coordinates (puts labels on y axis)
         xlab("Authors") + ylab("Mean Percentage Change") +
         theme_bw()  + geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 2, colour = "black", max.overlaps = 30)
 print(fp)
-
+ggsave("marketshare.png", plot = fp, width = 9.375, height = 9.375)
 # we can average by author
 # or average by appliance
 
@@ -111,6 +116,51 @@ ggplot(data_marketshare, aes(x = percent_change, y = percent_change_ci , colour 
   facet_wrap(vars(data_marketshare$intervention))+ 
   theme_bw()
 ```
+
+```{r}
+data_marketshare$study <- paste(data_marketshare$authors, " (", data_marketshare$year_publication, ")", sep = "")
+# updated graph
+fp <- ggplot(data = data_marketshare, aes(x = study, y = percent_change, ymin = percent_change - percent_change_ci, ymax = percent_change + percent_change_ci, colour = appliance, shape = intervention)) +
+  geom_pointrange(size = 1.5) +
+  geom_hline(yintercept = 1, lty = 2) +
+  coord_flip() +
+  xlab("Authors") +
+  ylab("Mean Percentage Change") +
+  theme_bw() +
+  geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 3, colour = "black", max.overlaps = 15) +
+  theme(legend.position = "bottom",  
+        legend.justification = c(1, 0),
+        legend.title = element_blank()) + theme(text = element_text(size = 17.5))  
+
+print(fp)
+ggsave("marketshare.png", plot = fp, width = 9.375, height = 9.375)
+```
+
+```{r}
+custom_order <- c("Label", "Rebate")
+data_marketshare$intervention <- factor(data_marketshare$intervention, levels = custom_order)
+data_marketshare <- data_marketshare[order(match(data_marketshare$intervention, custom_order)), ]
+
+fp <- ggplot(data = data_marketshare, aes(x = study, y = percent_change, ymin = percent_change - percent_change_ci, ymax = percent_change + percent_change_ci, colour = appliance, shape = intervention)) +
+  geom_pointrange(size = 2) +
+  geom_point(size = 2) +
+  geom_hline(yintercept = 0, lty = 2) +
+  coord_flip() +
+  xlab("Authors") +
+  ylab("Mean Percentage Change") +
+  theme_bw() +
+  geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 6.5, colour = "black", max.overlaps = 5) +
+  theme(legend.position = "bottom",  
+        legend.justification = c(1, 0),
+        legend.title = element_blank(), 
+        legend.text = element_text(size = 17.5)) + theme(text = element_text(size = 27.5))  
+
+print(fp)
+ggsave("marketshare.png", plot = fp, width = 15, height = 15)
+
+```
+
+
 
 
 

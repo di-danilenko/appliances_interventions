@@ -49,7 +49,7 @@ result <- appliances %>%
   group_by(intervention_category) %>%
   summarize(unique_study_IDs = n_distinct(study_ID))
 
-# View the result
+# view the result
 print(result)
 ```
 
@@ -300,7 +300,7 @@ rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Rebate
 
 coef_summary6 <- coef(summary(meta_model6))
 
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 42)")
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
 
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
        slab = row.names(coef_summary6), showweights = F, atransf = F, xlab = "z-value")
@@ -329,7 +329,7 @@ ggplot(coef_summary6,
                  size = 1.5, alpha = 1, colour = "red")  + 
   geom_point(size = 3) +
   geom_hline(yintercept = average_estimate6, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 6, y = average_estimate5 - 0.05, label = paste("Average:", round(average_estimate6, 2))) + 
+  annotate("text", x = 6, y = average_estimate6 - 0.05, label = paste("Average:", round(average_estimate6, 2))) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   theme_bw() +
@@ -511,9 +511,8 @@ summary(meta_egger2)
 
 ```{r}
 # identify outliers
-# outliers in loan and rebate (strong negative effects)
-# outliers by variance (> 0.25)
-# outliers by z_value > 0.5 or < - 0.5
+# these thresholds are identified by looking at the graphs and identifying the peaks
+
 threshold <- 0.1
 
 x5 <- cooks.distance(meta_model5)
@@ -525,6 +524,8 @@ for (i in 1:length(x5)) {
 }
 # 11, 130, 133, 134
 
+below_threshold_rows5 <- which(x5 < threshold)
+data_purchase5 <- data_purchase3[below_threshold_rows5,]
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
@@ -537,7 +538,10 @@ for (i in 1:length(x6)) {
     text(i, x6[i], i, cex = 1, pos = 4, col = "red")
   }
 }
-above_threshold_rows6 <- which(x6 > threshold6)
+
+below_threshold_rows6 <- which(x6 < threshold)
+data_purchase6 <- data_purchase3[below_threshold_rows6,]
+above_threshold_rows6 <- which(x6 > threshold)
 outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
 # 15, 130, 134, 133, 131, 126
 
@@ -624,30 +628,30 @@ for (i in 1:length(sav6$inf$cook.d)) {
 
 ```
 
-
 ```{r}
-
 ### TESTING MODELS WITHOUT OUTLIERS ###
 
-data_purchase5 <- data_purchase3 %>%
-  filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  filter(! intervention == "Loan")
+# we have already excluded the outliers in the previous code chunk
+
+#data_purchase5 <- data_purchase3 %>%
+  #filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
+  #filter(! intervention == "Loan")
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
 
-data_purchase6 <- data_purchase3 %>%
-  filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
-    filter(! intervention == "Loan")
+#data_purchase6 <- data_purchase3 %>%
+  #filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
+    #filter(! intervention == "Loan")
 
 meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase6, method = "REML")
 summary(meta_model5_1)
 summary(meta_model6_1)
 
-meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
+#meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
-summary(meta_model0_1)
+#summary(meta_model0_1)
 
 # both categories equally effective
 
@@ -663,23 +667,79 @@ summary(meta_model7)
 
 # interesting that after dropping highly influential values, the effect of economic values on refrigerator is basically diminished but probably due to very few observations
 
-data_purchase3 <- data_purchase3 %>%
-  filter(! study_ID == 123) %>%
-  filter(! intervention == "Loan")
+#data_purchase3 <- data_purchase3 %>%
+  #filter(! study_ID == 123) %>%
+  #filter(! intervention == "Loan")
 
-data_purchase3_1 <- data_purchase3 %>%
-  filter(! sr_no %in% outlier_cooksd5)
+#data_purchase3_1 <- data_purchase3 %>%
+  #filter(! sr_no %in% outlier_cooksd5)
 
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_model6_1)
+count5 <- table(data_purchase5$intervention)
+print(count5)
+
+count6 <- table(data_purchase6$appliance)
+print(count6)
+```
+```{r}
+# count effect sizes and studies per intervention and appliance after outlier exclusion
+# n effect sizes
+count5 <- table(data_purchase5$intervention)
+print(count5)
+
+count6 <- table(data_purchase6$appliance)
+print(count6)
+
+result5 <- data_purchase5 %>%
+  group_by(intervention) %>%
+  summarize(unique_study_IDs = n_distinct(study_ID))
+
+result6 <- data_purchase6 %>%
+  group_by(appliance) %>%
+  summarize(unique_study_IDs = n_distinct(study_ID))
+
+print(result5)
+print(result6)
 ```
 
+```{r}
+### make graphs without outliers ###
+
+coef_summary5_1 <- coef(summary(meta_model5_1))
+rownames(coef_summary5_1) <- c("Information \n(n = 67)","Label \n(n = 77)","Rebate \n(27)","Subsidy \n(n = 27)")
+average_estimate5_1 <- mean(coef_summary5_1$estimate)
+ggplot(coef_summary5_1,
+       aes(x = row.names(coef_summary5_1), y = estimate)) +
+  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
+                 size = 1.5, alpha = 1, colour = "red")  +
+  geom_point(size = 3) +
+  geom_hline(yintercept = average_estimate5_1, linetype = "dashed", color = "black", size = 1) +
+  annotate("text", x = 3.5, y = average_estimate5_1 - 0.05, label = paste("Average:", round(average_estimate5_1, 2))) + 
+  scale_y_continuous(limits = c(-0.15, 0.35)) +
+  labs(x = "", y = "z-value") +
+  theme_bw() +
+  theme(text = element_text(size = 25))
+ggsave("interventions_forest_nooutliers.png", width = 12.5, height = 9.375)
+
+coef_summary6_1 <- coef(summary(meta_model6_1))
+rownames(coef_summary6_1) <- c("Air-Conditioner \n(n = 29)","Clothes Dryer \n(n = 2)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 22)","Refrigerator \n(n = 48)","TV \n(n = 12)","Washing Machine \n(n = 10)","Water Heater \n(n = 42)")
+average_estimate6_1 <- mean(coef_summary6_1$estimate)
+ggplot(coef_summary6_1,
+       aes(x = row.names(coef_summary6_1), y = estimate)) +
+  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
+                 size = 1.5, alpha = 1, colour = "red")  + 
+  geom_point(size = 3) +
+  geom_hline(yintercept = average_estimate6_1, linetype = "dashed", color = "black", size = 1) +
+  annotate("text", x = 6, y = average_estimate6_1 - 0.05, label = paste("Average:", round(average_estimate6_1, 2))) + 
+  scale_y_continuous(limits = c(-0.3, 0.9)) +
+  labs(x = "", y = "z-value") +
+  theme_bw() +
+  theme(text = element_text(size = 25)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+ggsave("appliances_forest_nooutliers.png", width = 12.5, height = 9.375)
+
+# this gets really silly so i'm not sure about presenting this
+```
 
 ```{r}
-
 # create binary variables for all control factor variables
 
 # iterate over each factor variable
@@ -700,8 +760,6 @@ for (var_name in controlvars) {
 }
 
 ```
-
-
 
 ```{r}
 # create a list of control variables
@@ -733,7 +791,6 @@ dfbms <- mutate_if(dfbms, is.logical, as.numeric)
 ```
 
 ```{r}
-
 # BMA data preparation 
 # create binary variables for all control factor variables
 
@@ -762,7 +819,6 @@ for (var_name in controlvars) {
 ```
 
 ```{r}
-
 percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000, mcmc="bd", user.int=FALSE)
 # percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
 # percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
