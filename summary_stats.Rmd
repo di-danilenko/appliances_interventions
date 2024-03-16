@@ -25,7 +25,8 @@ library(summarytools)
 library(shiny)
 ```
 ```{r}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions/")
+# setwd("/Users/dianadanilenko/Desktop/appliances_interventions/")
+setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
 load("appliances_clean.R")
 ```
 
@@ -132,22 +133,22 @@ for(col in names(select(dfinc4,all_of(short_summ)))) {
 }
 
 # this line is causing error - and if we skip it the summary output only contains the results for one study_ID = 101
-freq(select(dfinc4, all_of(short_summ)), cumul = FALSE)
+# freq(select(dfinc4, all_of(short_summ)), cumul = FALSE)
 freq(dfinc4[short_summ[1]], cumul = FALSE)
 
 dfinc4 %>% select(all_of(sumVars)) %>% 
   dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_all.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_all.html"), output_file = paste0(outputPath, "summarystatistics_all.doc"))
+  print(file = "summarystatistics_all.html")
+rmarkdown::render("summarystatistics_all.html", output_file = "summarystatistics_all.doc")
 ```
 
 ```{r}
-dfinc4 %>%
-  select(all_of(sumVars)) %>%
-  dfSummary(graph.col = T, style = "grid") %>%
-  print(file = paste0(outputPath, "summarystatistics_all.html"))
-
-rmarkdown::render(paste0(outputPath, "summarystatistics_all.html"), output_file = paste0(outputPath, "summarystatistics_all.doc"))
+# dfinc4 %>%
+#   select(all_of(sumVars)) %>%
+#   dfSummary(graph.col = T, style = "grid") %>%
+#   print(file = paste0(outputPath, "summarystatistics_all.html"))
+# 
+# rmarkdown::render(paste0(outputPath, "summarystatistics_all.html"), output_file = paste0(outputPath, "summarystatistics_all.doc"))
 ```
 
 ```{r}
@@ -164,8 +165,8 @@ freq(select(dfinc1, all_of(short_summ)), cumul = FALSE)
 
 dfinc1 %>% select(all_of(sumVars)) %>% 
   dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_usage.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_usage.html"), output_file = paste0(outputPath, "summarystatistics_usage.doc"))
+  print(file = "summarystatistics_usage.html")
+rmarkdown::render("summarystatistics_usage.html", output_file = paste0(outputPath, "summarystatistics_usage.doc"))
 ```
 
 ```{r}
