@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-#setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 ```{r}
@@ -35,6 +35,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 unique_studies <- unique(appliances$study_ID)
+unique_authors <- unique(appliances$authors)
+unique_papers <- unique(paste(appliances$authors, appliances$year_publication, sep = ","))
+# we have 60 papers total - looks like one study id is repeated
+
 unique_countries <- unique(appliances$country)
 unique_countries
 
@@ -68,6 +72,11 @@ data_purchase1 <- data.frame()
 # filter to a needed dependent variable
 data_purchase1 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+unique_studies_purchase <- unique(data_purchase1$study_ID)
+# 44 studies
+# 215 obs
+table(data_purchase1$appliance)
+table(data_purchase1$intervention)
 # data_purchase1 <- data_purchase1 %>%
   # filter(!(appliance %in% c("Clothes Dryer", "Dishwasher")))
 ```
@@ -110,6 +119,39 @@ unique_studies_purchase <- unique(data_purchase3$study_ID)
 count1 <- table(data_purchase3$appliance)
 print(count1)
 ```
+
+```{r}
+# filter out high risk of bias studies
+data_nobias <- data_purchase3 %>%
+  filter(! outOfSampleBias == "probably yes") %>%
+  filter(! reportingBiases == "probably yes")
+
+# exclude self-reported numbers
+data_nosr <- data_nobias %>%
+  filter(! incentive_follow_through == "self-reported behaviour")
+
+# exclude stated preference
+data_best <- data_nobias %>%
+  filter(! incentive_follow_through == "stated preference")
+
+
+# do the regression on each of the datasets
+# aggregate effect size per dataset
+# and then put it together and compare
+
+data_stated <- data_purchase3 %>%
+  filter(! incentive_follow_through == "stated preference")
+
+data_self <- data_purchase3 %>%
+  filter(! incentive_follow_through == "self-reported behaviour")
+
+data_revealed <- data_purchase3 %>%
+  filter(! incentive_follow_through == "stated preference")
+
+count2 <- table(data_purchase3$incentive_follow_through)
+print(count2)
+```
+
 
 ```{r}
 # WTP separately
@@ -864,6 +906,18 @@ print(fp)
 ```{r}
 ggplot(data_purchase3, aes(x = appliance, y = z_value , colour = intervention_category))
 ```
+
+```{r}
+# count how many effect sizes on a monetary incentive have a monetary_incentive_size or monetary_incentive_relative not NA
+
+data_monetary <- data_purchase1 %>% filter (intervention_category == "Economic Incentives")
+# 70 observations
+data_monetary1 <- data_monetary %>%
+  filter(!is.na(monetary_incentive_size) | !is.na(monetary_incentive_relative))
+# 39 observations
+# half in $ half in some other currency - having a relative would resolve this 
+```
+
 
 
 

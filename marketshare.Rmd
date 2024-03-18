@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-#setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
 ```
 
 
@@ -36,9 +36,9 @@ data_marketshare <- data.frame()
 data_marketshare <- appliances %>% 
                   filter(dep_variable_purchase_category == "market share of efficient appliance")
 # exclude the outliers
-# data_marketshare<- data_marketshare %>% 
-  #                filter(z_value > -0.5,
-   #                      z_value < 0.5)
+data_marketshare<- data_marketshare %>% 
+                  filter(z_value > -0.5,
+                         z_value < 0.5)
 ```
 
 ```{r}
@@ -54,13 +54,17 @@ data_marketshare$percent_change_ci <-  ifelse(data_marketshare$study_ID == "114"
                                        data_marketshare$percent_change/abs(data_marketshare$t_stat),
                                        data_marketshare$coefficient_se*100)
 
-#data_marketshare <- data_marketshare %>% 
- #                 filter(percent_change > -50)
+data_marketshare <- data_marketshare %>% 
+                  filter(percent_change > -30)
                    
-#data_marketshare <- data_marketshare %>% 
- #                 filter(percent_change < 50)
+data_marketshare <- data_marketshare %>% 
+                  filter(percent_change < 50)
 
 unique_studies_marketshare <- unique(data_marketshare$study_ID)
+table(data_marketshare$appliance)
+table(data_marketshare$intervention)
+# 7 studies
+# 40 obs
 ```
 
 ```{r}
@@ -137,11 +141,13 @@ ggsave("marketshare.png", plot = fp, width = 9.375, height = 9.375)
 ```
 
 ```{r}
-custom_order <- c("Label", "Rebate")
-data_marketshare$intervention <- factor(data_marketshare$intervention, levels = custom_order)
-data_marketshare <- data_marketshare[order(match(data_marketshare$intervention, custom_order)), ]
+#custom_order <- c("Label", "Rebate")
+data_marketshare$intervention <- as.factor(data_marketshare$intervention)
+#data_marketshare <- data_marketshare[order(match(data_marketshare$intervention, custom_order)), ]
 
-fp <- ggplot(data = data_marketshare, aes(x = study, y = percent_change, ymin = percent_change - percent_change_ci, ymax = percent_change + percent_change_ci, colour = appliance, shape = intervention)) +
+data_marketshare$label <- ifelse(data_marketshare$intervention == "Label",1,0)
+
+fp <- ggplot(data = data_marketshare, aes(x = reorder(study,label), y = percent_change, ymin = percent_change - percent_change_ci, ymax = percent_change + percent_change_ci, colour = appliance, shape = intervention)) +
   geom_pointrange(size = 2) +
   geom_point(size = 2) +
   geom_hline(yintercept = 0, lty = 2) +
@@ -153,10 +159,10 @@ fp <- ggplot(data = data_marketshare, aes(x = study, y = percent_change, ymin = 
   theme(legend.position = "bottom",  
         legend.justification = c(1, 0),
         legend.title = element_blank(), 
-        legend.text = element_text(size = 17.5)) + theme(text = element_text(size = 27.5))  
+        legend.text = element_text(size = 18)) + theme(text = element_text(size = 30))  
 
 print(fp)
-ggsave("marketshare.png", plot = fp, width = 15, height = 15)
+ggsave("marketshare.png", plot = fp, width = 15, height = 12, resolution = 1000)
 
 ```
 

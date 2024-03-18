@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r load libraries}
 library(tidyverse)
 library(ggplot2)
 library(meta)
@@ -24,21 +24,20 @@ library(readxl)
 library(summarytools)
 library(shiny)
 ```
-```{r}
+
+```{r open dataset}
 setwd("/Users/dianadanilenko/Desktop/appliances_interventions/")
 load("appliances_clean.R")
 ```
 
-
-
-```{r}
+```{r full dataset}
 # first, run this without any exlusions
 dfinc4 <- appliances # full dataset
 # second, check the outputs of summary stats
 # third, run on subsets if needed
 ```
 
-```{r}
+```{r data subsets}
 # dfinc <- data_purchase purchase probability
 # include WTP and purchase probability together
 data_purchase1 <- data.frame()
@@ -61,7 +60,6 @@ dfinc2 <- data_marketshare # market share
 
 # dfinc3 <- data_wtp wtp
 
-
 dfinc6 <- dfinc4 %>%
   filter(intervention_category == "Information Strategies")
 
@@ -70,7 +68,6 @@ dfinc7 <- dfinc4 %>%
 
 #dfinc8 <- data_purchase3 # excluding outliers
 ```
-
 
 ```{r}
 ################DESCRIPTIVE STATISTICS##################################
@@ -106,9 +103,7 @@ sumvarsNum <- c("percent_change",
                 "z_variance_obs")
 
 sumVars <- c(short_summ,sumVarsCatego, sumvarsNum)
-
 ```
-
 
 ```{r}
 freq(select(dfinc8, all_of(short_summ)), cumul = FALSE)

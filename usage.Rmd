@@ -42,6 +42,11 @@ data_usage <- data_usage %>%
 # this study is excluded as it doesnt disentagle appliance-specific effects
 
 unique_studies_usage <- unique(data_usage$study_ID)
+# 9 studies
+# 36 obs
+
+table(data_usage$appliance)
+table(data_usage$intervention)
 ```
 
 ```{r}
