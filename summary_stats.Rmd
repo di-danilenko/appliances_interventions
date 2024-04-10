@@ -94,6 +94,21 @@ appliances[sumVarsFactor] <- lapply(appliances[sumVarsFactor], factor)
 appliances[sumvarsNum] <- lapply(appliances[sumvarsNum], as.numeric)
 ```
 
+```{r}
+total_population <- dfinc5 %>%
+  distinct(study_ID, .keep_all = TRUE) %>%
+  summarise(total_population = sum(total_sample_size, na.rm = TRUE))
+
+freq(dfinc5$incentive_follow_through)
+
+total_countries <- dfinc5 %>%
+  distinct(study_ID, .keep_all = TRUE) %>%
+  summarise(country = median(country, na.rm = TRUE))
+
+freq(total_countries$country)
+```
+
+
 ```{r full dataset}
 # first, run this without any exlusions
 dfinc4 <- appliances # full dataset

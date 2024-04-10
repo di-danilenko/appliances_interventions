@@ -257,6 +257,11 @@ appliances$year_data_study <- ifelse(
   appliances$year_publication,
   appliances$year_data_study
 )
+
+appliances$multi_intervention <- rowSums(appliances[c("feedback", "information", "label", "rebate", "tax_credit", "subsidy", "loan", "choice_architecture")])
+
+appliances_multi <- appliances %>% filter(multi_intervention > 1)
+# 48 obs
 ```
 
 

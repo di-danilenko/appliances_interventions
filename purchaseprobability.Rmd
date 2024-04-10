@@ -34,21 +34,29 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+# move this part of the code into data cleaning
 unique_studies <- unique(appliances$study_ID)
 unique_authors <- unique(appliances$authors)
 unique_papers <- unique(paste(appliances$authors, appliances$year_publication, sep = ","))
-# we have 60 papers total - looks like one study id is repeated
+unique_paperxid <- unique(paste(appliances$authors, appliances$year_publication, appliances$study_ID,sep = ","))
+rm(unique_paperxid)
+# Yao, Liu, Yan , 2014 assign study ID that is not among study_IDs
+appliances$study_ID[appliances$authors == "Yao, Liu, Yan"] <- "305"
+appliances <- appliances %>% filter(! "Kuhn, Thogersen, Kutzner" %in% authors) 
 
 unique_countries <- unique(appliances$country)
 unique_countries
 
-first_per_study <- appliances %>%
+unique_continents <- unique(appliances$continent)
+unique_continents
+table(appliances$continent)
+
+first_per_study <- data_purchase1 %>%
   group_by(study_ID) %>%
   summarise(first_total_sample_size = first(total_sample_size))
 
 sum_households <- sum(first_per_study$first_total_sample_size)
 
-# seems like theres one more exclusion we didnt record
 result <- appliances %>%
   group_by(intervention_category) %>%
   summarize(unique_study_IDs = n_distinct(study_ID))
@@ -150,6 +158,47 @@ data_revealed <- data_purchase3 %>%
 
 count2 <- table(data_purchase3$incentive_follow_through)
 print(count2)
+```
+
+```{r}
+# data for > 1 intervention
+
+data_purchase_multi <- appliances_multi %>% 
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+# 40 obs
+table(data_purchase_multi$multi_intervention)
+
+# introduce variables intervention1 and intervention2 and implement a meta-regression
+# this is actually intervention 2 technically as we are over-writing
+data_purchase_multi$intervention1 <- with(data_purchase_multi, case_when(
+  feedback == 1 ~ "Information",
+  information == 1 ~ "Information",
+  label == 1 ~ "Label",
+  rebate == 1 ~ "Rebate",
+  tax_credit == 1 ~ "Tax",
+  subsidy == 1 ~ "Subsidy",
+  loan == 1 ~ "Loan",
+  choice_architecture == 1 ~ "Command & Control",
+  TRUE ~ NA_character_
+))
+
+data_purchase_multi$intervention2 <- with(data_purchase_multi, case_when(
+  (feedback == 1 & intervention1 != "Information") ~ "Information",
+  (information == 1 & intervention1 != "Information") ~ "Information",
+  (label == 1 & intervention1 != "Label") ~ "Label",
+  (rebate == 1 & intervention1 != "Rebate") ~ "Rebate",
+  (tax_credit == 1 &  intervention1 != "Tax") ~ "Tax",
+  (subsidy == 1 & intervention1 != "Subsidy") ~ "Subsidy",
+  (loan == 1 & intervention1 != "Loan") ~ "Loan",
+  (choice_architecture == 1 &intervention1 != "Command & Control") ~ "Command & Control",
+  TRUE ~ NA_character_
+)) 
+
+meta_model_multi <- rma(z_value, z_variance, data = data_purchase_multi, method = "FE", mods = ~ intervention1:intervention2+0)
+summary(meta_model_multi)
+
+meta_model_multi_reml <- rma(z_value, z_variance, data = data_purchase_multi, method = "REML", mods = ~ intervention1:intervention2+0)
+summary(meta_model_multi_reml)
 ```
 
 
