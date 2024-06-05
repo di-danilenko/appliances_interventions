@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions")
 ```
 
 ```{r}
@@ -38,11 +38,6 @@ knitr::opts_chunk$set(echo = TRUE)
 unique_studies <- unique(appliances$study_ID)
 unique_authors <- unique(appliances$authors)
 unique_papers <- unique(paste(appliances$authors, appliances$year_publication, sep = ","))
-unique_paperxid <- unique(paste(appliances$authors, appliances$year_publication, appliances$study_ID,sep = ","))
-rm(unique_paperxid)
-# Yao, Liu, Yan , 2014 assign study ID that is not among study_IDs
-appliances$study_ID[appliances$authors == "Yao, Liu, Yan"] <- "305"
-appliances <- appliances %>% filter(! "Kuhn, Thogersen, Kutzner" %in% authors) 
 
 unique_countries <- unique(appliances$country)
 unique_countries
@@ -141,7 +136,6 @@ data_nosr <- data_nobias %>%
 # exclude stated preference
 data_best <- data_nobias %>%
   filter(! incentive_follow_through == "stated preference")
-
 
 # do the regression on each of the datasets
 # aggregate effect size per dataset
@@ -350,6 +344,7 @@ meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention,
 meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_model6)
+
 meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # random effects multi-level by appliance
