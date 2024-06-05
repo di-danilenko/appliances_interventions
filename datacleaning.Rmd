@@ -320,6 +320,21 @@ average_num_effect_sizes <- mean(appliances$num_effect_sizes, na.rm = TRUE)
 # Print the average number of effect sizes
 print(average_num_effect_sizes)
 ```
+```{r}
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('117','122', '152')))
+appliances$study_ID[appliances$authors == "Yao, Liu, Yan"] <- "305"
+
+# 278 observations
+# 58 studies
+
+table(appliances$intervention)
+
+loan <- appliances %>% filter (intervention == "Loan")
+
+print(length(unique(appliances$study_ID)))
+```
+
 
 ```{r}
 # write the clean dataset into an R database

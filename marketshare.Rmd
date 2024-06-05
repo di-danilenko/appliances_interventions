@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions")
 ```
 
 
