@@ -26,14 +26,14 @@ library(shiny)
 ```
 
 ```{r open dataset}
-setwd("/Users/dianadanilenko/Desktop/appliances_interventions/")
+setwd("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions/")
 #setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
 load("appliances_clean.R")
 ```
 
 ```{r}
 ################DESCRIPTIVE STATISTICS##################################
-outputPath <- c("/Users/dianadanilenko/Desktop/appliances_interventions/")
+outputPath <- c("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions/")
 
 short_summ    <- c("appliance",
                    "intervention",
@@ -162,9 +162,9 @@ freq(select(dfinc4, all_of(sumvarsNum)), cumul = FALSE)
 
 dfinc4 %>% group_by(dep_variable_purchase_category) %>%
   select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid", na.col = FALSE)
-  #print(file = "summarystatistics_all.html")
-#rmarkdown::render("summarystatistics_all.html", output_file = "summarystatistics_all.doc")
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_all.html")
+rmarkdown::render("summarystatistics_all.html", output_file = "summarystatistics_all.doc")
 
 ```
 
