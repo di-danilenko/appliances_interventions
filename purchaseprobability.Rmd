@@ -7,6 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 #setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
+setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
+
 ```
 
 ```{r}
@@ -491,13 +493,33 @@ legend("topright", # Position of the legend
 
 data_purchase3$se = (data_purchase3$z_variance)^(1/2)
 
-meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se, # add all moderator variables
+meta <-rma.mv(z_value, z_variance, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_egger1)
+summary(meta)
 
-meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
+meta_egger <-rma.mv(z_value, z_variance, mods =  ~ se, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_egger2)
+summary(meta_egger)
+
+meta_egger_1 <-rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+summary(meta_egger_1)
+
+# meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se, # add all moderator variables
+#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# summary(meta_egger1)
+# 
+# meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se^2, # add all moderator variables
+#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# summary(meta_egger1_1)
+# 
+# 
+# meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
+#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# summary(meta_egger2)
+# meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
+#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+# summary(meta_egger2_2)
 
 
 # # what does this do? 
