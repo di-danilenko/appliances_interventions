@@ -509,7 +509,7 @@ summary(meta_egger_1)
 #                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # summary(meta_egger1)
 
-meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se^2, # add all moderator variables
+meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se^2, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger1_1)
 
@@ -517,7 +517,7 @@ summary(meta_egger1_1)
 # meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
 #                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # summary(meta_egger2)
-meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
+meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger2_2)
 
@@ -528,7 +528,6 @@ summary(meta_egger2_2)
 # robust(rma(z_value, v, 
 #                      mods = ~ v, data = dfinc5, method = "FE"), cluster = study_ID, clubSandwich = T)
 
-# bias correction
 ```
 
 ```{r}
