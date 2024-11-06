@@ -508,18 +508,18 @@ summary(meta_egger_1)
 # meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se, # add all moderator variables
 #                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # summary(meta_egger1)
-# 
-# meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se^2, # add all moderator variables
-#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# summary(meta_egger1_1)
-# 
-# 
+
+meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se^2, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+summary(meta_egger1_1)
+
+
 # meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
 #                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # summary(meta_egger2)
-# meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
-#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# summary(meta_egger2_2)
+meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+summary(meta_egger2_2)
 
 
 # # what does this do? 
@@ -672,7 +672,7 @@ summary(meta_model5_1)
 summary(meta_model6_1)
 
 #meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
+                               # random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
 #summary(meta_model0_1)
 
 # both categories equally effective
