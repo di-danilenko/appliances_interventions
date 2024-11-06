@@ -28,6 +28,9 @@ library(dplyr)
 library(stringr)
 library(readxl)
 library(ggridges)
+library(BMS)
+library(corrplot)
+
 options(scipen = 999)
 ```
 
@@ -292,18 +295,23 @@ summary(meta_model7)
 ```
 
 ```{r}
-### FOREST PLOT ### 
+### AVERAGE EFFECT PLOT ### 
 
-coef_summary5 <- coef(summary(meta_model5))
+coef_summary5 <- coef(summary(meta_model5_1))[-5,]
 forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
        slab = row.names(coef_summary5), showweights = F, atransf = F, shade="zebra",xlab = "z-value")
 
 rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 coef_summary6 <- coef(summary(meta_model6))
 
 rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
 
+=======
+coef_summary6 <- coef(summary(meta_model6_1))[-10,]
+rownames(coef_summary6) <- c("Air-Conditioner","Clothes Dryer","Dishwasher","Heat Pump","Lighting","Refrigerator","TV","Washing Machine","Water Heater")
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
        slab = row.names(coef_summary6), showweights = F, atransf = F, xlab = "z-value")
 
@@ -321,8 +329,13 @@ ggplot(coef_summary5,
   annotate("text", x = 3.5, y = average_estimate5 - 0.05, label = paste("Average:", round(average_estimate5, 2))) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
+  ylim(-.3, 0.3)+
   theme_bw() +
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
   theme(text = element_text(size = 25))
+=======
+  theme(text = element_text(size = 10))
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 
 average_estimate6 <- mean(coef_summary6$estimate)
 ggplot(coef_summary6,
@@ -334,9 +347,14 @@ ggplot(coef_summary6,
   annotate("text", x = 6, y = average_estimate6 - 0.05, label = paste("Average:", round(average_estimate6, 2))) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
+    ylim(-.3, 0.3)+
   theme_bw() +
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
   theme(text = element_text(size = 25)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 ggsave("appliances_forest.png", width = 12.5, height = 9.375)
+=======
+  theme(text = element_text(size = 10))
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 ```
 
 ```{r}
@@ -462,7 +480,7 @@ my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "br
 funnel(
   data_purchase3$z_value, 
   v = data_purchase3$z_variance,
-  ylim = c(0, 0.3),
+  # ylim = c(0, 0.3),
   col = my_colors[as.factor(data_purchase3$appliance)], 
   legend = FALSE # We'll create the legend manually
 )
@@ -521,17 +539,29 @@ meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se, # add all 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger2_2)
 
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 
 # # what does this do? 
 # robust(rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), 
 #                      mods = ~ v, data = dfinc5, method = "REML"), cluster = as.factor(study_ID), clubSandwich = T)
 # robust(rma(z_value, v, 
 #                      mods = ~ v, data = dfinc5, method = "FE"), cluster = study_ID, clubSandwich = T)
+=======
+# bias correction
+meta_egger3 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+z_variance, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+summary(meta_egger3)
+
+meta_egger4 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+summary(meta_egger4)
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 
 ```
 
 ```{r}
 # identify outliers
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 # these thresholds are identified by looking at the graphs and identifying the peaks
 
 threshold <- 0.1
@@ -547,12 +577,23 @@ for (i in 1:length(x5)) {
 
 below_threshold_rows5 <- which(x5 < threshold)
 data_purchase5 <- data_purchase3[below_threshold_rows5,]
+=======
+# outliers in loan and rebate (strong negative effects)
+# outliers by variance (> 0.25)
+# outliers by z_value > 0.5 or < - 0.5
+
+x5 <- cooks.distance(meta_model5)
+plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+text(x5,labels=names(x5))
+threshold <- 0.1
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
 threshold6 <- 0.5
 
 x6 <- cooks.distance(meta_model6)
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 for (i in 1:length(x6)) {
   if (x6[i] > threshold6) {
@@ -562,6 +603,11 @@ for (i in 1:length(x6)) {
 
 below_threshold_rows6 <- which(x6 < threshold)
 data_purchase6 <- data_purchase3[below_threshold_rows6,]
+=======
+plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+text(x6,labels=names(x6))
+threshold <- 0.5
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 above_threshold_rows6 <- which(x6 > threshold)
 outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
 # 15, 130, 134, 133, 131, 126
@@ -658,14 +704,14 @@ for (i in 1:length(sav6$inf$cook.d)) {
   #filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
   #filter(! intervention == "Loan")
 
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0+z_variance, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
 
 #data_purchase6 <- data_purchase3 %>%
   #filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
     #filter(! intervention == "Loan")
 
-meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
+meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0+z_variance,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase6, method = "REML")
 summary(meta_model5_1)
 summary(meta_model6_1)
@@ -795,7 +841,7 @@ controlvars <- c( "counterfactual",
                  "study_design",
                  "incentive_follow_through",
                  "experimental_setting",
-                   # "participant_type",
+                   "participant_type",
                  "aware_of_study",
                  "opt_in",
                  "randomisation_dummy",
@@ -806,7 +852,9 @@ controlvars <- c( "counterfactual",
                  "controls_demographics")
 
 metregvar <- c("z_value", "z_variance")
-dfbms <- data_purchase3 %>%  select(all_of(metregvar))
+dfbms <- data_purchase3  %>% select(all_of(metregvar))
+dfbms <- ungroup(dfbms)
+dfbms <- dfbms %>% select(-c(study_ID))
 dfbms <- mutate_if(dfbms, is.character, as.numeric)
 dfbms <- mutate_if(dfbms, is.logical, as.numeric)
 ```
@@ -834,26 +882,41 @@ for (var_name in controlvars) {
 # summary(dfbms)
 # new_order <- sort(colnames(dfbms))
 # dfbms <- dfbms[, new_order]
-
-
-# dfbms <- dfbms %>% select(-c(intervention_Information, appliance_Lighting))
+ #select(-c(intervention_Information, appliance_Lighting))
 ```
 
 ```{r}
 percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000, mcmc="bd", user.int=FALSE)
-# percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
-# percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
+percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
+percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 # percent3 = bms(dfbms, burn=1e5,iter=3e5, g="hyper=BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 
-coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
+coef <- as.data.frame(coef(percent, order.by.pip = F, exact=T, yprop2pip=T, include.constant=T))
 print(coef)
-image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+# image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+
+# coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
+# coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
+# coeff <- cbind(coef, coef1, coef2)
+# write.table(coeff,"BMA_estimates_sep.csv")
 
 col<- colorRampPalette(c("red", "white", "blue"))
 M <- cor(dfbms)
 corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
 
+<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 ```
+=======
+############## ROBUSTNESS CHECKS  OLS-Frequentist###################################################
+
+topmod<- lm(z_value ~ intervention+z_variance+appliance+ incentive_follow_through+reportingBiases+
+              participant_type+0
+            
+            ,data = data_purchase3) 
+coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t")
+coeff_top
+write.table(coeff_top,"Fcheck_sep.csv")
+>>>>>>> Stashed changes:purchaseprobability.Rmd
 
 ```{r}
 # figures
