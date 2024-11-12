@@ -30,6 +30,7 @@ library(readxl)
 library(ggridges)
 library(BMS)
 library(corrplot)
+library(clubSandwich)
 
 options(scipen = 999)
 ```
@@ -105,7 +106,7 @@ data_purchase3 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 
 data_purchase3 <- data_purchase3 %>%
-  filter(! intervention == "Loan")
+  filter(! intervention %in% c("Loan", "Command & Control"))
 
 count <- table(data_purchase3$intervention)
 print(count)
@@ -303,15 +304,16 @@ forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary
 
 rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
+#<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 coef_summary6 <- coef(summary(meta_model6))
 
 rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
 
-=======
+#=======
 coef_summary6 <- coef(summary(meta_model6_1))[-10,]
 rownames(coef_summary6) <- c("Air-Conditioner","Clothes Dryer","Dishwasher","Heat Pump","Lighting","Refrigerator","TV","Washing Machine","Water Heater")
->>>>>>> Stashed changes:purchaseprobability.Rmd
+#>>>>>>> Stashed changes:purchaseprobability.Rmd
+
 forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
        slab = row.names(coef_summary6), showweights = F, atransf = F, xlab = "z-value")
 
@@ -331,11 +333,11 @@ ggplot(coef_summary5,
   labs(x = "", y = "z-value") +
   ylim(-.3, 0.3)+
   theme_bw() +
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
+#<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
   theme(text = element_text(size = 25))
-=======
+#=======
   theme(text = element_text(size = 10))
->>>>>>> Stashed changes:purchaseprobability.Rmd
+#>>>>>>> Stashed changes:purchaseprobability.Rmd
 
 average_estimate6 <- mean(coef_summary6$estimate)
 ggplot(coef_summary6,
@@ -349,12 +351,12 @@ ggplot(coef_summary6,
   labs(x = "", y = "z-value") +
     ylim(-.3, 0.3)+
   theme_bw() +
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
+#<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
   theme(text = element_text(size = 25)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 ggsave("appliances_forest.png", width = 12.5, height = 9.375)
-=======
+#=======
   theme(text = element_text(size = 10))
->>>>>>> Stashed changes:purchaseprobability.Rmd
+#>>>>>>> Stashed changes:purchaseprobability.Rmd
 ```
 
 ```{r}
@@ -539,14 +541,13 @@ meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se, # add all 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger2_2)
 
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
 
 # # what does this do? 
 # robust(rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), 
 #                      mods = ~ v, data = dfinc5, method = "REML"), cluster = as.factor(study_ID), clubSandwich = T)
 # robust(rma(z_value, v, 
 #                      mods = ~ v, data = dfinc5, method = "FE"), cluster = study_ID, clubSandwich = T)
-=======
+
 # bias correction
 meta_egger3 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+z_variance, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
@@ -555,13 +556,13 @@ summary(meta_egger3)
 meta_egger4 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 summary(meta_egger4)
->>>>>>> Stashed changes:purchaseprobability.Rmd
+
 
 ```
 
 ```{r}
 # identify outliers
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
+
 # these thresholds are identified by looking at the graphs and identifying the peaks
 
 threshold <- 0.1
@@ -577,7 +578,7 @@ for (i in 1:length(x5)) {
 
 below_threshold_rows5 <- which(x5 < threshold)
 data_purchase5 <- data_purchase3[below_threshold_rows5,]
-=======
+
 # outliers in loan and rebate (strong negative effects)
 # outliers by variance (> 0.25)
 # outliers by z_value > 0.5 or < - 0.5
@@ -586,14 +587,14 @@ x5 <- cooks.distance(meta_model5)
 plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x5,labels=names(x5))
 threshold <- 0.1
->>>>>>> Stashed changes:purchaseprobability.Rmd
+
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
 threshold6 <- 0.5
 
 x6 <- cooks.distance(meta_model6)
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
+
 plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 for (i in 1:length(x6)) {
   if (x6[i] > threshold6) {
@@ -603,11 +604,11 @@ for (i in 1:length(x6)) {
 
 below_threshold_rows6 <- which(x6 < threshold)
 data_purchase6 <- data_purchase3[below_threshold_rows6,]
-=======
+#=======
 plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x6,labels=names(x6))
 threshold <- 0.5
->>>>>>> Stashed changes:purchaseprobability.Rmd
+#>>>>>>> Stashed changes:purchaseprobability.Rmd
 above_threshold_rows6 <- which(x6 > threshold)
 outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
 # 15, 130, 134, 133, 131, 126
@@ -807,36 +808,37 @@ ggsave("appliances_forest_nooutliers.png", width = 12.5, height = 9.375)
 ```
 
 ```{r}
-# create binary variables for all control factor variables
-
-# iterate over each factor variable
-for (var_name in controlvars) {
-  
-  # get unique factor levels
-  
-  levels <- unique(data_purchase3[[var_name]])
-  
-  # create binary variables for each factor level
-  for (level in levels) {
-    # create a new column name by appending the factor level to the variable name
-    new_col_name <- paste(var_name, level, sep = "_")
-    
-    # create a binary variable for the current factor level
-    data_purchase3[[new_col_name]] <- as.integer(data_purchase3[[var_name]] == level)
-  }
-}
+# # create binary variables for all control factor variables
+# 
+# # iterate over each factor variable
+# for (var_name in controlvars) {
+#   
+#   # get unique factor levels
+#   
+#   levels <- unique(data_purchase3[[var_name]])
+#   
+#   # create binary variables for each factor level
+#   for (level in levels) {
+#     # create a new column name by appending the factor level to the variable name
+#     new_col_name <- paste(var_name, level, sep = "_")
+#     
+#     # create a binary variable for the current factor level
+#     data_purchase3[[new_col_name]] <- as.integer(data_purchase3[[var_name]] == level)
+#   }
+# }
 
 ```
 
 ```{r}
 # create a list of control variables
-data_purchase3$n_interventions <- as.factor(data_purchase3$n_interventions)
-controlvars <- c( "counterfactual",
-                  "n_interventions",
+# data_purchase3$n_interventions <- as.factor(data_purchase3$n_interventions)
+controlvars <- c( 
+                  # "counterfactual",
+                  # "n_interventions",
                  "intervention",
                  "appliance",
                  # "continent",
-                 "OECD",
+                 # "OECD",
                  "statistical_technique",
                  "study_design",
                  "incentive_follow_through",
@@ -855,13 +857,16 @@ metregvar <- c("z_value", "z_variance")
 dfbms <- data_purchase3  %>% select(all_of(metregvar))
 dfbms <- ungroup(dfbms)
 dfbms <- dfbms %>% select(-c(study_ID))
-dfbms <- mutate_if(dfbms, is.character, as.numeric)
-dfbms <- mutate_if(dfbms, is.logical, as.numeric)
+# dfbms <- mutate_if(dfbms, is.character, as.numeric)
+# dfbms <- mutate_if(dfbms, is.logical, as.numeric)
+
+
 ```
 
 ```{r}
 # BMA data preparation 
 # create binary variables for all control factor variables
+
 
 # iterate over each factor variable
 for (var_name in controlvars) {
@@ -879,10 +884,15 @@ for (var_name in controlvars) {
     dfbms[[new_col_name]] <- as.numeric(data_purchase3[[var_name]] == level)
   }
 }
-# summary(dfbms)
+
+names(dfbms) <- gsub(" ", "_", names(dfbms))
+dfbms <- mutate_if(dfbms, is.character, as.numeric)
+dfbms <- mutate_if(dfbms, is.logical, as.numeric)
+summary(dfbms)
+
 # new_order <- sort(colnames(dfbms))
 # dfbms <- dfbms[, new_order]
- #select(-c(intervention_Information, appliance_Lighting))
+# select(-c(intervention_Information, appliance_Lighting))
 ```
 
 ```{r}
@@ -891,32 +901,48 @@ percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, 
 percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 # percent3 = bms(dfbms, burn=1e5,iter=3e5, g="hyper=BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 
-coef <- as.data.frame(coef(percent, order.by.pip = F, exact=T, yprop2pip=T, include.constant=T))
-print(coef)
+coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
+# coef$CI.l = coef$`Post Mean` - 2*coef$`Post SD`
+# coef$CI.u = coef$`Post Mean` + 2*coef$`Post SD`
+# case_when()
+# print(coef)
+
+# print(coef)
 # image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+# summary(percent)
 
-# coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
-# coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
-# coeff <- cbind(coef, coef1, coef2)
-# write.table(coeff,"BMA_estimates_sep.csv")
+coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
+coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
+coeff <- cbind(coef, coef1, coef2)
+print(coeff)
+write.table(coeff,"BMA_estimates.csv")
 
-col<- colorRampPalette(c("red", "white", "blue"))
-M <- cor(dfbms)
-corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
+# col<- colorRampPalette(c("red", "white", "blue"))
+# M <- cor(dfbms)
+# corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
 
-<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
-```
-=======
 ############## ROBUSTNESS CHECKS  OLS-Frequentist###################################################
 
+levels(data_purchase3$intervention) <- gsub(" ", "_", levels(data_purchase3$intervention))
+levels(data_purchase3$statistical_technique) <- gsub(" ", "_", levels(data_purchase3$statistical_technique))
+levels(data_purchase3$appliance) <- gsub(" ", "_", levels(data_purchase3$appliance))
+levels(data_purchase3$incentive_follow_through) <- gsub(" ", "_", levels(data_purchase3$incentive_follow_through))
+levels(data_purchase3$participant_type) <- gsub(" ", "_", levels(data_purchase3$participant_type))
+levels(data_purchase3$reportingBiases) <- gsub(" ", "_", levels(data_purchase3$reportingBiases))
+levels(data_purchase3$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase3$outOfSampleBias))
+
+data_purchase3$participant_type <- relevel(data_purchase3$participant_type, ref = "residents")
+data_purchase3$intervention <- relevel(data_purchase3$intervention, ref = "Label")
+
 topmod<- lm(z_value ~ intervention+z_variance+appliance+ incentive_follow_through+reportingBiases+
-              participant_type+0
-            
-            ,data = data_purchase3) 
+              participant_type+statistical_technique+outOfSampleBias
+
+            ,data = data_purchase3)
 coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t")
 coeff_top
-write.table(coeff_top,"Fcheck_sep.csv")
->>>>>>> Stashed changes:purchaseprobability.Rmd
+write.table(coeff_top,"Fcheck.csv")
+
+```
 
 ```{r}
 # figures
