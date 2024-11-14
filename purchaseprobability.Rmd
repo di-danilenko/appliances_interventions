@@ -105,8 +105,8 @@ data_purchase3 <- data.frame()
 data_purchase3 <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 
-data_purchase3 <- data_purchase3 %>%
-  filter(! intervention %in% c("Loan", "Command & Control"))
+# data_purchase3 <- data_purchase3 %>%
+  # filter(!  study_ID %in% c("111")) #intervention %in% c("Loan") &
 
 count <- table(data_purchase3$intervention)
 print(count)
@@ -907,9 +907,8 @@ coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, incl
 # case_when()
 # print(coef)
 
-# print(coef)
-# image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
-# summary(percent)
+image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
+summary(percent)
 
 coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
 coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
@@ -932,10 +931,12 @@ levels(data_purchase3$reportingBiases) <- gsub(" ", "_", levels(data_purchase3$r
 levels(data_purchase3$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase3$outOfSampleBias))
 
 data_purchase3$participant_type <- relevel(data_purchase3$participant_type, ref = "residents")
-data_purchase3$intervention <- relevel(data_purchase3$intervention, ref = "Label")
+data_purchase3$intervention1 <- relevel(data_purchase3$intervention, ref = "Rebate")
 
-topmod<- lm(z_value ~ intervention+z_variance+appliance+ incentive_follow_through+reportingBiases+
-              participant_type+statistical_technique+outOfSampleBias
+levels(data_purchase3$intervention1)[levels(data_purchase3$intervention1) %in% c("Information", "Label")] <- "Info"
+
+topmod<- lm(z_value ~ intervention1+z_variance+appliance+ incentive_follow_through+reportingBiases+
+              participant_type+statistical_technique+outOfSampleBias+0
 
             ,data = data_purchase3)
 coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t")
