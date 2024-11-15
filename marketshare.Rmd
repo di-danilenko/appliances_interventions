@@ -6,9 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-setwd("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions")
+setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
 ```
-
 
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -30,36 +29,24 @@ load("appliances_clean.R")
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r subset data}
 data_marketshare <- data.frame()
 # filter to a needed dependent variable
 data_marketshare <- appliances %>% 
                   filter(dep_variable_purchase_category == "market share of efficient appliance")
-
-# exclude carroll, denny & lyons as they do not have a clear control 
-# exclude houde & aldy (2017) as it is a peer-reviewed version of houde & aldy 2014
-data_marketshare <- data_marketshare %>% 
-                 filter(! study_ID %in% c("122","147"))
-
-# exclude the outliers
-#data_marketshare<- data_marketshare %>% 
- #                 filter(z_value > -0.5,
-  #                       z_value < 0.5)
 ```
 
-```{r}
+```{r process data}
 data_marketshare$percent_change <- ifelse(is.na(data_marketshare$percent_change),
                                     data_marketshare$coefficient,
                                     data_marketshare$percent_change)
 
 data_marketshare$percent_change <- data_marketshare$percent_change*100
 
-# data_marketshare <- data_marketshare %>% filter(! study_ID %in% c("114","202"))
-
 data_marketshare$percent_change_ci <-  ifelse(data_marketshare$study_ID == "114",
                                        data_marketshare$percent_change/abs(data_marketshare$t_stat),
                                        data_marketshare$coefficient_se*100)
-
+# exclude outliers for visualisation purpose
 data_marketshare <- data_marketshare %>% 
                   filter(percent_change > -30)
                    
@@ -67,65 +54,17 @@ data_marketshare <- data_marketshare %>%
                   filter(percent_change < 30)
 
 unique_studies_marketshare <- unique(data_marketshare$study_ID)
-table(data_marketshare$appliance)
-table(data_marketshare$intervention)
-# 5 studies
-# 27 obs
 ```
 
-```{r}
-# Count the occurrences
-count <- table(data_marketshare$intervention)
-print(count)
-
-count <- table(data_marketshare$appliance)
-print(count)
-
-# Group by appliance and calculate summary statistics
-summary_stats <- data_marketshare %>%
-  group_by(appliance) %>%
-  summarise(
-    mean_percent_change = mean(percent_change),
-    min_percent_change = min(percent_change),
-    max_percent_change = max(percent_change),
-    #mean_coefficient = mean(coefficient),
-    #min_coefficient = min(coefficient),
-    #max_coefficient = max(coefficient),
-    #mean_tstat = mean(t_stat),
-    mean_tstat_abs = mean(abs(t_stat))
-  )
-
-# Print the summary statistics
-print(summary_stats)
-
-# dishwasher - negative (Datta & Gulati)
-# refrigerator - crazy tstat 
-```
-
-```{r}
+```{r frequency table}
 library(ggrepel)
 library(RColorBrewer)
-
-num_appliances <- length(unique(data_marketshare$appliance))
 palette <- brewer.pal(num_appliances, "Set1")
 
 intervention_colors <- setNames(palette, unique(data_marketshare$intervention))
+appliance_colors <- setNames(palette, unique(data_marketshare$appliance))
 
-### FOREST PLOTS ### 
-data_marketshare$sr_no <- as.factor(data_marketshare$sr_no)
-fp <- ggplot(data=data_marketshare, aes(x=sr_no, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = appliance)) +
-        geom_pointrange(size=0.5) + 
-        geom_hline(yintercept=1, lty=2) +  # add a dotted line at x=1 after flip
-        coord_flip() +  # flip coordinates (puts labels on y axis)
-        xlab("serial number") + ylab("mean percentage change") +
-  scale_colour_manual(values = intervention_colors) +
-        theme_bw()  + geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 2, colour = "black", max.overlaps = 30)
-print(fp)
-ggsave("marketshare.png", plot = fp, width = 9.375, height = 9.375)
-# group and label by author but keep in different rows
-# try different graphs because with this one we really have to exclude a lot of outliers to zoom in 
-
-### FREQUENCY TABLES AND DISTRIBUTIONS
+### FREQUENCY TABLE
 ggplot(data_marketshare, aes(x = percent_change, y = percent_change_ci , colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
   geom_point(size = 2, alpha = 0.75) +
@@ -136,119 +75,37 @@ ggplot(data_marketshare, aes(x = percent_change, y = percent_change_ci , colour 
   theme_bw()
 ```
 
-```{r}
-# Calculate unique positions for labels
-label_data <- data_marketshare %>% 
-  summarise(study_ID,sr_no = sr_no,authors = authors, year_publication = year_publication) %>%
-  distinct(authors, year_publication, sr_no)
-label_data <- label_data %>%
-  distinct(authors, .keep_all = TRUE)
-
-fp <- ggplot(data=data_marketshare, aes(x=sr_no, y=percent_change, ymin=percent_change - percent_change_ci, ymax=percent_change + percent_change_ci, colour = appliance)) +
-  geom_pointrange(size=0.5) + 
-  geom_hline(yintercept=1, lty=2) +  
-  coord_flip() +  
-  xlab("serial number") + ylab("mean percentage change") +
-  scale_colour_manual(values = appliance_colors) +
-  theme_bw() + 
-   annotate("text", x = Inf, y = -Inf, 
-                 label = paste(authors_year$authors, authors_year$year_publication, collapse = "\n"),
-                 hjust = 1, vjust = 0,
-                 size = 3, colour = "blue") +
-  geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 2, colour = "black", max.overlaps = 30)
-
-print(fp)
-```
-
-```{r}
+```{r folded forest plot}
 data_marketshare$sr_no <- as.factor(data_marketshare$sr_no)
+library(stringr)
 
-fp <- ggplot(data = data_marketshare, aes(x = sr_no, y = percent_change, 
+data_marketshare$author <- str_extract(data_marketshare$authors, "^[^,]+")  # Extract the first author's name
+data_marketshare$author <- paste(data_marketshare$author, "et al.")  # Append "et al."
+data_marketshare['author_year'] <- paste0(data_marketshare$author, " (",data_marketshare$year_publication,")")
+data_marketshare['author_year_srno'] <- paste0(data_marketshare$author, " (",data_marketshare$year_publication,")", " ", data_marketshare$sr_no)
+
+fp <- ggplot(data = data_marketshare, aes(x = author_year_srno, y = percent_change, 
                                           ymin = percent_change - percent_change_ci, 
                                           ymax = percent_change + percent_change_ci, 
                                           colour = intervention)) +
         geom_pointrange(size = 0.5) + 
-        geom_hline(yintercept = 1, lty = 2) +  # add a dotted line at y = 1 after flip
-        coord_flip() +  # flip coordinates (puts labels on y axis)
-        xlab("Serial Number") + ylab("Mean Percentage Change") +
+        geom_hline(yintercept = 0, lty = 2) +  # Add a dotted line at y = 0
+        coord_flip() +  # Flip coordinates (puts labels on y axis)
+        ylab("Mean Percentage Change") + xlab("") +
         scale_colour_manual(values = intervention_colors) +
         theme_bw() +
-        geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), 
-                         size = 2, colour = "black", max.overlaps = 30) +
-        facet_wrap(~ appliance, scales = "free_y")  # Facet by appliance to keep labels separate
+        geom_label(aes(label = paste0(round(percent_change, 2), "%")), 
+                   size = 2.25, colour = "black", 
+                   vjust = 1.5, hjust = 0.75)+  # Move the label above the point (adjust as needed)
+                   #nudge_y = -1.5) +  # Manually adjust the label position upward
+        facet_wrap(~ appliance, scales = "free_y") +  # Facet by appliance to keep labels separate
+        scale_x_discrete(
+            breaks = data_marketshare$author_year_srno,  # Use the full value for positioning
+            labels = data_marketshare$author_year  # Display only the author_year on the axis
+        )
 
 print(fp)
-ggsave("marketshare_appliance.png", plot = fp, width = 9.375, height = 9.375)
-```
-
-```{r}
-data_marketshare$sr_no <- as.factor(data_marketshare$sr_no)
-data_marketshare$study <- paste(data_marketshare$authors, " (", data_marketshare$year_publication, ")", sep = "")
-
-
-
-fp <- ggplot(data = data_marketshare, aes(x = sr_no, y = percent_change, 
-                                          ymin = percent_change - percent_change_ci, 
-                                          ymax = percent_change + percent_change_ci, 
-                                          colour = appliance)) +
-        geom_pointrange(size = 0.5) + 
-        geom_hline(yintercept = 1, lty = 2) +  # add a dotted line at y = 1 after flip
-        coord_flip() +  # flip coordinates (puts labels on y axis)
-        xlab("Serial Number") + ylab("Mean Percentage Change") +
-        scale_colour_manual(values = appliance_colors) +
-        theme_bw() +
-    theme(axis.text.x = element_text(data_marketshare$study)) +
-        geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), 
-                         size = 2, colour = "black", max.overlaps = 30)
-print(fp)
-```
-
-
-
-
-```{r}
-
-# updated graph
-fp <- ggplot(data = data_marketshare, aes(x = sr_no, y = percent_change, ymin = percent_change - percent_change_ci, ymax = percent_change + percent_change_ci, colour = appliance, shape = intervention)) +
-  geom_pointrange(size = 1.5) +
-  geom_hline(yintercept = 1, lty = 2) +
-  coord_flip() +
-  xlab("Serial Number") +
-  ylab("Mean Percentage Change") +
-  theme_bw() +
-  geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 3, colour = "black", max.overlaps = 15) +
-  theme(legend.position = "bottom",  
-        legend.justification = c(1, 0),
-        legend.title = element_blank()) + theme(text = element_text(size = 17.5))  
-
-print(fp)
-ggsave("marketshare.png", plot = fp, width = 9.375, height = 9.375)
-```
-
-```{r}
-#custom_order <- c("Label", "Rebate")
-data_marketshare$intervention <- as.factor(data_marketshare$intervention)
-#data_marketshare <- data_marketshare[order(match(data_marketshare$intervention, custom_order)), ]
-
-data_marketshare$label <- ifelse(data_marketshare$intervention == "Label",1,0)
-
-fp <- ggplot(data = data_marketshare, aes(x = reorder(study,label), y = percent_change, ymin = percent_change - percent_change_ci, ymax = percent_change + percent_change_ci, colour = appliance, shape = intervention)) +
-  geom_pointrange(size = 2) +
-  geom_point(size = 2) +
-  geom_hline(yintercept = 0, lty = 2) +
-  coord_flip() +
-  xlab("Authors") +
-  ylab("Mean Percentage Change") +
-  theme_bw() +
-  geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 6.5, colour = "black", max.overlaps = 5) +
-  theme(legend.position = "bottom",  
-        legend.justification = c(1, 0),
-        legend.title = element_blank(), 
-        legend.text = element_text(size = 18)) + theme(text = element_text(size = 30))  
-
-print(fp)
-ggsave("marketshare.png", plot = fp, width = 15, height = 12, resolution = 1000)
-
+ggsave("marketshare_appliance.png", plot = fp, width = 10, height = 8)
 ```
 
 

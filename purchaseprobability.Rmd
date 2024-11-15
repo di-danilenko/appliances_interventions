@@ -6,9 +6,12 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-#setwd("/Users/dianadanilenko/Desktop/appliances_interventions")
-setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
+knitr::opts_chunk$set(echo = TRUE)
+```
 
+```{r setup, include=FALSE}
+setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
+#setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
@@ -35,292 +38,63 @@ library(clubSandwich)
 options(scipen = 999)
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
-unique_studies <- unique(appliances$study_ID)
-unique_countries <- unique(appliances$country)
-unique_countries
-
-first_per_study <- appliances %>%
-  group_by(study_ID) %>%
-  summarise(first_total_sample_size = first(total_sample_size))
-
-sum_households <- sum(first_per_study$first_total_sample_size)
-
-# seems like theres one more exclusion we didnt record
-result <- appliances %>%
-  group_by(intervention_category) %>%
-  summarize(unique_study_IDs = n_distinct(study_ID))
-
-# view the result
-print(result)
-```
-
-
-```{r}
+```{r filter to a needed dependent variable}
 data_purchase <- data.frame()
-# filter to a needed dependent variable
-data_purchase <- appliances %>% 
-                  filter(dep_variable_purchase_category == "purschase (probability) of efficient appliance")
-rm(data_purchase)
-```
-
-```{r}
 # include WTP and purchase probability together
-data_purchase1 <- data.frame()
-# filter to a needed dependent variable
-data_purchase1 <- appliances %>%
+data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
-# data_purchase1 <- data_purchase1 %>%
-  # filter(!(appliance %in% c("Clothes Dryer", "Dishwasher")))
 ```
 
-```{r}
-# z_value outliers
-outlier_z_value <- data.frame()
-# filter to a needed dependent variable
-outlier_z_value <- appliances %>%
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
-# exclude the outliers
-outlier_z_value <- outlier_z_value %>% 
-                  filter(z_value < -0.5 |
-                         z_value > 0.5)
-# Anderson, Claxton (1982) - fridge - economic - revealed
-# Schultz et al. (2015) - very specific intensive intervention - a marketing campaign - lighting - economic - revealed
-# Train, Atherton (1995) x5 - confusing modelling - fridge, ac - information - stated
-# Li et al. (2021) - fridge - economic - stated
-# Skourtos et al. (2021) x4 - fridge - economic - stated
-# Ward et al. (2021) x2 - fridge - economic - stated
-```
-
-```{r}
-# carry out the same analysis without any exclusions
-# include WTP and purchase probability together
-data_purchase3 <- data.frame()
-# filter to a needed dependent variable
-
-data_purchase3 <- appliances %>%
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
-
-# data_purchase3 <- data_purchase3 %>%
-  # filter(!  study_ID %in% c("111")) #intervention %in% c("Loan") &
-
-count <- table(data_purchase3$intervention)
-print(count)
-
-unique_studies_purchase <- unique(data_purchase3$study_ID)
-
-count1 <- table(data_purchase3$appliance)
-print(count1)
-```
-
-```{r}
-# WTP separately
-data_wtp <- data.frame()
-# filter to a needed dependent variable
-data_wtp <- appliances %>%
-  filter(dep_variable_purchase_category == "WTP for efficient appliance")
-# exclude the outliers
-data_wtp <- data_wtp %>% 
-                  filter(z_value > -0.5,
-                         z_value < 0.5)
-```
-
-```{r}
-# create a list of control variables
-controlvars <- c("continent",
-                   "statistical_technique",
-                   "study_design",
-                   "incentive_follow_through",
-                   "experimental_setting",
-                   "participant_type",
-                 "aware_of_study",
-                 "opt_in",
-                 "randomisation_dummy",
-                 "outOfSampleBias",
-                 "reportingBiases",
-                 "controls_energy_prices",
-                 "controls_environmental_attitudes",
-                 "controls_demographics",
-                 "counterfactual")
-```
-
-```{r}
-# filter by appliance to test basic models
-data_purchase_washing <- data_purchase %>% 
-                  filter(washing_machine == 1)
-
-data_purchase_dryer <- data_purchase %>% 
-                  filter(clothes_dryer == 1)
-
-data_purchase_dishwasher <- data_purchase %>% 
-                  filter(dishwasher == 1)
-
-data_purchase_refrigerator <- data_purchase %>% 
-                  filter(refrigerator == 1)
-
-data_purchase_heat_pump <- data_purchase %>% 
-                  filter(heat_pump == 1)
-
-data_purchase_lighting <- data_purchase %>% 
-                  filter(lighting == 1)
-
-data_purchase_water <- data_purchase %>% 
-                  filter(water_heater == 1)
-
-data_purchase_ac <- data_purchase %>% 
-                  filter(ac == 1)
-
-data_purchase_tv <- data_purchase %>% 
-                  filter(tv == 1)
-```
-
-```{r}
-### ANALYSIS BY APPLIANCE ###
-### RANDOM EFFECTS MODEL ###
-##washing machine
-m.gen_purchase_washing <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_washing,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = FALSE,
-                 random = TRUE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_washing_random.png", width = 6000, height = 3000, res = 500)
-forest.meta(m.gen_purchase_washing,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")
-
-### FIXED EFFECTS MODEL ###
-  
-m1.gen_purchase_washing <- metagen(TE = z_value,
-                 seTE = z_variance,
-                 data = data_purchase_washing,
-                 studlab = authors,
-                 sm = "ZCOR",
-                 fixed = TRUE,
-                 random = FALSE,
-                 backtransf = F,
-                 )
-
-## forest plot of purchase
-
-png(file = "forestplot_washing_fixed.png", width = 6000, height = 3000, res = 500)
-forest.meta(m1.gen_purchase_washing,
-           leftcols = c("authors", "Intervention"),
-           digits =6,
-           col.random = "Red",
-           xlab = "Effect Sizes",
-           col.square = "Blue")       
-```
-
-```{r}
+```{r meta analysis}
 ### META-ANALYSIS ###
-### PURCHASE PROBABILITY + WTP (incl. outliers)
+### PURCHASE PROBABILITY + WTP
 
 ### FIXED EFFECTS ###
-meta_model1 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ intervention+0)
+meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ intervention+0)
 summary(meta_model1)
 # fixed effects by intervention
-# all significant positive
 
-meta_model2 <- rma(z_value, z_variance, data = data_purchase3, method = "FE", mods = ~ appliance+0)
+meta_model2 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ appliance+0)
 summary(meta_model2)
 # fixed effects by appliance
-# AC, light, fridge, tv, washing machine, water heater significant positive
 
 ### RANDOM EFFECTS ###
-meta_model3 <- rma(z_value, z_variance, data = data_purchase3, method = "REML", mods = ~ intervention+0)
+meta_model3 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ intervention+0)
 summary(meta_model3)
 # random effects by intervention
-# information, label, rebate significant positive
-meta_model4 <- rma(z_value, z_variance, data = data_purchase3, method = "REML", mods = ~ appliance+0)
+
+meta_model4 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ appliance+0)
 summary(meta_model4)
 # random effects by appliance
-# AC, light, fridge, washing machine, water heater significant positive
 
 ### MULTI-LEVEL MODEL ###
-
-#Above results show that there is no statistical difference between effect sizes for 1) wtp and purchase prob 2)monetary incentives and info strategies
-
 meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0,
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_model5)
-
-meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
 # random effects multi-level by intervention
-# information, label, rebate significant positive
-meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-summary(meta_model6)
-meta_model6_1 <-rma.mv(z_value, z_variance, mods =  ~ appliance, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# random effects multi-level by appliance
-# light, fridge, tv, washing machine significant positive
 
+meta_model6 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0,  
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_model6)
+# random effects multi-level by appliance
 
 ### INTERACTION INTERVENTION X APPLIANCE ###
-data_purchase4 <- data_purchase3 %>%
+data_purchase1 <- data_purchase %>%
   filter(appliance %in% c("Refrigerator", "Lighting", "Water Heater", "Air-Conditioner"))
 
 meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase4, method = "REML")
-# economic incentives x refrigerator have a negative sign  
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
 summary(meta_model7)
-
-# run a model with control variables included
-#control_formula <- as.formula(paste("~", paste(controlvars, collapse = "+"), "+ 0"))
-#meta_model8 <-rma.mv(z_value, z_variance, mods = control_formula,  
-                               #random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-
-# numeric and binary variables are causing errors
-
-# effects don't change too much from inclusion of 'outliers'
-# AC results change quite a bit, although there was only one effect size on AC 
-# Train papers show weird results for loan and z_values 
-# Skourtos paper has both high variance and z_value
-
-#summary(meta_model8)
+# random effects multi-level interaction between intervention category and appliance
 ```
 
-```{r}
+```{r forest plot}
 ### AVERAGE EFFECT PLOT ### 
 
-coef_summary5 <- coef(summary(meta_model5_1))[-5,]
-forest(coef_summary5$estimate, ci.lb = coef_summary5$ci.lb, ci.ub = coef_summary5$ci.ub, 
-       slab = row.names(coef_summary5), showweights = F, atransf = F, shade="zebra",xlab = "z-value")
+coef_summary5 <- coef(summary(meta_model5))
 
-rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
+rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
-#<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
-coef_summary6 <- coef(summary(meta_model6))
-
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
-
-#=======
-coef_summary6 <- coef(summary(meta_model6_1))[-10,]
-rownames(coef_summary6) <- c("Air-Conditioner","Clothes Dryer","Dishwasher","Heat Pump","Lighting","Refrigerator","TV","Washing Machine","Water Heater")
-#>>>>>>> Stashed changes:purchaseprobability.Rmd
-
-forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub, 
-       slab = row.names(coef_summary6), showweights = F, atransf = F, xlab = "z-value")
-
-forest(coef_summary6$estimate, ci.lb = coef_summary6$ci.lb, ci.ub = coef_summary6$ci.ub,
-       slab = row.names(coef_summary6), showweights = TRUE, atransf = F,  shade="zebra", xlab = "z-value")
-
-### from bi ###
 average_estimate5 <- mean(coef_summary5$estimate)
 ggplot(coef_summary5,
        aes(x = row.names(coef_summary5), y = estimate)) +
@@ -328,16 +102,17 @@ ggplot(coef_summary5,
                  size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
   geom_hline(yintercept = average_estimate5, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 3.5, y = average_estimate5 - 0.05, label = paste("Average:", round(average_estimate5, 2))) + 
+  annotate("text", x = 3.5, y = average_estimate5 - 0.05, label = paste("Average:", round(average_estimate5, 2)), size = 4.5) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-  ylim(-.3, 0.3)+
+  ylim(-.2, 0.31)+
   theme_bw() +
-#<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
-  theme(text = element_text(size = 25))
-#=======
-  theme(text = element_text(size = 10))
-#>>>>>>> Stashed changes:purchaseprobability.Rmd
+  theme(text = element_text(size = 20))
+ggsave("interventions_forest.png")
+
+coef_summary6 <- coef(summary(meta_model6))
+
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
 
 average_estimate6 <- mean(coef_summary6$estimate)
 ggplot(coef_summary6,
@@ -346,84 +121,28 @@ ggplot(coef_summary6,
                  size = 1.5, alpha = 1, colour = "red")  + 
   geom_point(size = 3) +
   geom_hline(yintercept = average_estimate6, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 6, y = average_estimate6 - 0.05, label = paste("Average:", round(average_estimate6, 2))) + 
+  annotate("text", x = 6, y = average_estimate6 - 0.05, label = paste("Average:", round(average_estimate6, 2)), size = 4.5) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-    ylim(-.3, 0.3)+
+    ylim(-.2, 0.31)+
   theme_bw() +
-#<<<<<<< Updated upstream:purchaseprobability_withoutBMA.Rmd
-  theme(text = element_text(size = 25)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-ggsave("appliances_forest.png", width = 12.5, height = 9.375)
-#=======
-  theme(text = element_text(size = 10))
-#>>>>>>> Stashed changes:purchaseprobability.Rmd
+  theme(text = element_text(size = 20)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+ggsave("appliances_forest.png")
 ```
 
-```{r}
-# count unique studies per category
-
-unique_studies <- data_purchase3 %>%
-  group_by(appliance) %>%
-  summarise(unique_study_ID_count = n_distinct(study_ID))
-print(unique_studies)
-
-unique_studies1 <- data_purchase3 %>%
-  group_by(intervention) %>%
-  summarise(unique_study_ID_count = n_distinct(study_ID))
-print(unique_studies1)
-
-unique_statt <- data_purchase3 %>%
-  group_by(statistical_technique) %>%
-  summarise(unique_study_ID_count = n_distinct(study_ID))
-print(unique_statt)
-
-unique_design <- data_purchase3 %>%
-  group_by(study_design) %>%
-  summarise(unique_study_ID_count = n_distinct(study_ID))
-print(unique_design)
-# reclassify odd study designs 
-```
-
-```{r}
-# count number of interventions
-data_purchase3$n_interventions <- rowSums(data_purchase3[, c("information", "label", "subsidy", "rebate", "tax_credit","feedback","loan")])
-data_purchase3$n_interventions <- as.factor(data_purchase3$n_interventions)
-```
-
-```{r}
-avgffect_bygroup<- filter(data_purchase3) %>%
-  group_by(appliance, intervention) %>% 
-  summarise(avg = mean(z_value, na.rm = TRUE))%>%
-  pivot_wider(names_from = intervention, values_from = avg)%>%
-  print()
-```
-
-```{r}
+```{r extra graphs}
 ### FREQUENCY TABLES AND DISTRIBUTIONS
-ggplot(data_purchase3, aes(x = z_value, y = z_variance , colour = appliance)) +
+ggplot(data_purchase, aes(x = z_value, y = z_variance , colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
   geom_point(size = 2, alpha = 0.25) +
   #geom_jitter(width = .1, alpha = .25) +
   labs(x = "z_value", y = "variance") +
-  facet_wrap(vars(data_purchase3$intervention))+ 
+  facet_wrap(vars(data_purchase$intervention))+ 
   theme_bw()
 ```
 
-```{r}
-# outlier check 
-outlier_variance <- data_purchase1 %>% 
-  filter(z_variance > 0.02)
-
-loan <- data_purchase1 %>%
-  filter(intervention == "Loan")
-# all insingificant apart from revealed preference in Train & Atherton and Liu, Jin
-# all significant effects are negative
-# consistent with the findings described in the primary studies
-```
-
-
-```{r}
-ggplot(data_purchase3, aes(x = year_data_study, y = z_value, colour = appliance)) +
+```{r extra graphs}
+ggplot(data_purchase, aes(x = year_data_study, y = z_value, colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
   geom_point(size = 2, alpha = 0.25) +
   #geom_jitter(width = .5, alpha = .25) +
@@ -431,15 +150,15 @@ ggplot(data_purchase3, aes(x = year_data_study, y = z_value, colour = appliance)
   theme_bw()
 ```
 
-```{r}
+```{r extra graphs}
 # Effect level analysis 
 
-ggplot(data_purchase3, aes(x = z_value, y = intervention, colour = intervention)) +
+ggplot(data_purchase, aes(x = z_value, y = intervention, colour = intervention)) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
                        quantile_lines = TRUE, quantiles = c(0.5)) + 
   geom_jitter(height = .1, alpha = .1)
 
-ggplot(data_purchase3, 
+ggplot(data_purchase, 
               aes(x = z_value, y = appliance, colour = appliance)) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = 1, 
                        quantile_lines = TRUE, quantiles = c(0.5)) + 
@@ -447,7 +166,7 @@ ggplot(data_purchase3,
 
 # Summary by group using dplyr
 
-data_purchase3 %>%                               
+data_purchase %>%                               
   group_by(appliance) %>% 
   summarize(min = min(z_value, na.rm = T),
             q1 = quantile(z_value, 0.25, na.rm = T),
@@ -457,116 +176,108 @@ data_purchase3 %>%
             max = max(z_value, na.rm = T))
 
 
-ggplot(data_purchase3, aes(x = z_value, y = as.factor(outOfSampleBias))) +
+ggplot(data_purchase, aes(x = z_value, y = as.factor(outOfSampleBias))) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
                        quantile_lines = TRUE, quantiles = c(0.5)) +
   geom_jitter(height = .1, alpha = .1) 
 
-ggplot(data_purchase3, aes(x = z_value, y = as.factor(reportingBiases))) +
+ggplot(data_purchase, aes(x = z_value, y = as.factor(reportingBiases))) +
   geom_density_ridges2(fill = "lightblue", alpha = 0.5, scale = .8, 
                        quantile_lines = TRUE, quantiles = c(0.5)) +
   geom_jitter(height = .1, alpha = .1) 
 ```
 
-```{r}
+```{r ! assess publication bias -- Tarun to review this cell}
 ### PUBLICATION BIAS ASSESSMENT ###
 library(lmtest)
 
 ### EGGERS TEST ### 
-
+library(ggrepel)
+library(RColorBrewer)
 # Define a color palette with enough colors for each unique appliance
-my_colors <- c("blue", "red", "green", "purple", "orange", "yellow", "pink", "brown", "gray")
+palette <- brewer.pal(length(unique(data_purchase$appliance)),"Set1")
+appliance_colors <- setNames(palette, unique(data_marketshare$appliance))
 
 ### FUNNEL PLOT ###
-
 funnel(
-  data_purchase3$z_value, 
-  v = data_purchase3$z_variance,
+  data_purchase$z_value, 
+  v = data_purchase$z_variance,
   # ylim = c(0, 0.3),
-  col = my_colors[as.factor(data_purchase3$appliance)], 
+  col = appliance_colors[as.factor(data_purchase$appliance)], 
   legend = FALSE # We'll create the legend manually
 )
 
+# causes error -- Tarun 
 # Create the legend manually using the legend() function
 legend("topright", # Position of the legend
-       legend = levels(as.factor(data_purchase3$appliance)), # Legend labels
+       legend = levels(as.factor(data_purchase$appliance)), # Legend labels
        col = my_colors, # Legend colors
        pch = 15, # Point type (change if needed)
        title = "Appliance" # Legend title (change if needed)
 )
 
+palette <- brewer.pal(length(unique(data_purchase$intervention_category)),"Set1")
+intervention_colors <- setNames(palette, unique(data_purchase$intervention_category))
+
+
 funnel(
-  data_purchase3$z_value, 
-  v = data_purchase3$z_variance,
+  data_purchase$z_value, 
+  v = data_purchase$z_variance,
   ylim = c(0, 0.3),
-  col = my_colors[as.factor(data_purchase3$intervention_category)], 
+  col = intervention_colors[as.factor(data_purchase$intervention_category)], 
   legend = FALSE # We'll create the legend manually
 )
 
+# causes error -- Tarun
 # Create the legend manually using the legend() function
 legend("topright", # Position of the legend
-       legend = levels(as.factor(data_purchase3$intervention_category)), # Legend labels
+       legend = levels(as.factor(data_purchase$intervention_category)), # Legend labels
        col = my_colors, # Legend colors
        pch = 15, # Point type (change if needed)
        title = "Intervention" # Legend title (change if needed)
 )
 
-data_purchase3$se = (data_purchase3$z_variance)^(1/2)
+data_purchase$se = (data_purchase$z_variance)^(1/2)
 
 meta <-rma.mv(z_value, z_variance, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta)
 
 meta_egger <-rma.mv(z_value, z_variance, mods =  ~ se, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger)
 
 meta_egger_1 <-rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger_1)
 
-# meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se, # add all moderator variables
-#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# summary(meta_egger1)
-
-meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se^2, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se,
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_egger1)
+# Tarun -- could you have a look which ones from these to keep?
+meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se^2,
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger1_1)
 
-
-# meta_egger2 <-rma.mv(z_value, z_variance, mods =  ~ appliance+se, # add all moderator variables
-#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# summary(meta_egger2)
-meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se,
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger2_2)
 
-
-# # what does this do? 
-# robust(rma.mv(z_value, v, random = ~ as.factor(sr_no) | as.factor(study_ID), 
-#                      mods = ~ v, data = dfinc5, method = "REML"), cluster = as.factor(study_ID), clubSandwich = T)
-# robust(rma(z_value, v, 
-#                      mods = ~ v, data = dfinc5, method = "FE"), cluster = study_ID, clubSandwich = T)
-
 # bias correction
-meta_egger3 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+z_variance, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+meta_egger3 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+z_variance, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger3)
 
-meta_egger4 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance, # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
+meta_egger4 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance, 
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger4)
-
-
 ```
 
-```{r}
-# identify outliers
-
+```{r identify outliers}
 # these thresholds are identified by looking at the graphs and identifying the peaks
 
+#intervention model
 threshold <- 0.1
-
 x5 <- cooks.distance(meta_model5)
 plot(x5, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 for (i in 1:length(x5)) {
@@ -574,14 +285,9 @@ for (i in 1:length(x5)) {
     text(i, x5[i], i, cex = 1, pos = 4, col = "red")
   }
 }
-# 11, 130, 133, 134
 
 below_threshold_rows5 <- which(x5 < threshold)
 data_purchase5 <- data_purchase3[below_threshold_rows5,]
-
-# outliers in loan and rebate (strong negative effects)
-# outliers by variance (> 0.25)
-# outliers by z_value > 0.5 or < - 0.5
 
 x5 <- cooks.distance(meta_model5)
 plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
@@ -591,7 +297,8 @@ threshold <- 0.1
 above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase3[above_threshold_rows5,]
 
-threshold6 <- 0.5
+# appliance model
+threshold <- 0.5
 
 x6 <- cooks.distance(meta_model6)
 
@@ -604,234 +311,41 @@ for (i in 1:length(x6)) {
 
 below_threshold_rows6 <- which(x6 < threshold)
 data_purchase6 <- data_purchase3[below_threshold_rows6,]
-#=======
+
 plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 text(x6,labels=names(x6))
 threshold <- 0.5
-#>>>>>>> Stashed changes:purchaseprobability.Rmd
 above_threshold_rows6 <- which(x6 > threshold)
 outlier_cooksd6 <- data_purchase3[above_threshold_rows6,]
-# 15, 130, 134, 133, 131, 126
-
-# y <- dfbetas(meta_model5, progbar=FALSE, reestimate=F, parallel="multicore")
-# plot(y$intrcpt, type="o", pch=19, xlab="Observed Outcome", ylab="DFBetas")
 ```
 
-```{r}
-res5 <- rma(z_value, z_variance, mods =  ~ intervention+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# what is the difference between using rma and rma.mv
-
-# explore influence diagnostics
-sav5 <- influence(res5)
-sav5
-
-#cov.r
-plot(sav5$inf$cov.r, type = "l", xlab = "index", ylab = "cov.r",
-          xlim = c(1,203), ylim = c(0.25, 1.1))
-
-# Adding labels for values less than 0.9
-for (i in 1:length(sav5$inf$cov.r)) {
-  if (sav5$inf$cov.r[i] < 0.9) {
-    text(i, sav5$inf$cov.r[i], i, cex = 0.5, pos = 1, col = "red")
-  }
-}
-
-# including effect sizes 133, 134, 167, 11, 188 and 194 reduces precision
-
-# cook.d
-plot(sav5$inf$cook.d, type = "l", xlab = "index", ylab = "cook.d",
-          xlim = c(1,203), ylim = c(0, 1.5))
-
-# Adding labels for values above 0.75
-for (i in 1:length(sav5$inf$cook.d)) {
-  if (sav5$inf$cook.d[i] > 0.75) {
-    text(i, sav5$inf$cook.d[i], i, cex = 0.5, pos = 1, col = "red")
-  }
-}
-
-# 133 and 134 are outliers again 
-
-# Train & Atherton study - refrigerator & rebate 
-
-# this seems like an important outlier and we should test for results without this outlier
-
-# do we need to explain in the paper why outliers are like that?
-
-res6 <- rma(z_value, z_variance, mods =  ~ appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase3, method = "REML")
-# what is the difference between using rma and rma.mv
-
-# explore influence diagnostics for appliance-specific model
-sav6 <- influence(res6)
-sav6
-
-#cov.r
-plot(sav6$inf$cov.r, type = "l", xlab = "index", ylab = "cov.r",
-          xlim = c(1,203), ylim = c(0, 1.1))
-
-# Adding labels for values less than 0.9
-for (i in 1:length(sav6$inf$cov.r)) {
-  if (sav6$inf$cov.r[i] < 0.9) {
-    text(i, sav6$inf$cov.r[i], i, cex = 0.5, pos = 1, col = "red")
-  }
-}
-
-# including effect sizes 133, 134, 167, 11, 188 and 194 reduces precision + 143 and 132, 135
-
-# cook.d
-plot(sav6$inf$cook.d, type = "l", xlab = "index", ylab = "cook.d",
-          xlim = c(1,203), ylim = c(0, 1.5))
-
-# Adding labels for values above 0.75
-for (i in 1:length(sav6$inf$cook.d)) {
-  if (sav6$inf$cook.d[i] > 0.75) {
-    text(i, sav6$inf$cook.d[i], i, cex = 0.5, pos = 1, col = "red")
-  }
-}
-
-# 133 and 134 again
-
-# these are tested on not a ML model though
-
-```
-
-```{r}
+```{r test models without outliers}
 ### TESTING MODELS WITHOUT OUTLIERS ###
-
-# we have already excluded the outliers in the previous code chunk
-
-#data_purchase5 <- data_purchase3 %>%
-  #filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  #filter(! intervention == "Loan")
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0+z_variance, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
-
-#data_purchase6 <- data_purchase3 %>%
-  #filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
-    #filter(! intervention == "Loan")
+summary(meta_model5_1)
 
 meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0+z_variance,  
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase6, method = "REML")
-summary(meta_model5_1)
 summary(meta_model6_1)
-
-#meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category + 0,
-                               # random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
-#summary(meta_model0_1)
 
 # both categories equally effective
 
-data_purchase7 <- data_purchase3 %>%
+data_purchase2 <- data_purchase %>%
   filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
   filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
   filter(! intervention == "Loan") %>%
   filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
 
 meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase7, method = "REML")
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
 summary(meta_model7)
-
-# interesting that after dropping highly influential values, the effect of economic values on refrigerator is basically diminished but probably due to very few observations
-
-#data_purchase3 <- data_purchase3 %>%
-  #filter(! study_ID == 123) %>%
-  #filter(! intervention == "Loan")
-
-#data_purchase3_1 <- data_purchase3 %>%
-  #filter(! sr_no %in% outlier_cooksd5)
-
-count5 <- table(data_purchase5$intervention)
-print(count5)
-
-count6 <- table(data_purchase6$appliance)
-print(count6)
-```
-```{r}
-# count effect sizes and studies per intervention and appliance after outlier exclusion
-# n effect sizes
-count5 <- table(data_purchase5$intervention)
-print(count5)
-
-count6 <- table(data_purchase6$appliance)
-print(count6)
-
-result5 <- data_purchase5 %>%
-  group_by(intervention) %>%
-  summarize(unique_study_IDs = n_distinct(study_ID))
-
-result6 <- data_purchase6 %>%
-  group_by(appliance) %>%
-  summarize(unique_study_IDs = n_distinct(study_ID))
-
-print(result5)
-print(result6)
 ```
 
-```{r}
-### make graphs without outliers ###
-
-coef_summary5_1 <- coef(summary(meta_model5_1))
-rownames(coef_summary5_1) <- c("Information \n(n = 67)","Label \n(n = 77)","Rebate \n(27)","Subsidy \n(n = 27)")
-average_estimate5_1 <- mean(coef_summary5_1$estimate)
-ggplot(coef_summary5_1,
-       aes(x = row.names(coef_summary5_1), y = estimate)) +
-  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
-                 size = 1.5, alpha = 1, colour = "red")  +
-  geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate5_1, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 3.5, y = average_estimate5_1 - 0.05, label = paste("Average:", round(average_estimate5_1, 2))) + 
-  scale_y_continuous(limits = c(-0.15, 0.35)) +
-  labs(x = "", y = "z-value") +
-  theme_bw() +
-  theme(text = element_text(size = 25))
-ggsave("interventions_forest_nooutliers.png", width = 12.5, height = 9.375)
-
-coef_summary6_1 <- coef(summary(meta_model6_1))
-rownames(coef_summary6_1) <- c("Air-Conditioner \n(n = 29)","Clothes Dryer \n(n = 2)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 22)","Refrigerator \n(n = 48)","TV \n(n = 12)","Washing Machine \n(n = 10)","Water Heater \n(n = 42)")
-average_estimate6_1 <- mean(coef_summary6_1$estimate)
-ggplot(coef_summary6_1,
-       aes(x = row.names(coef_summary6_1), y = estimate)) +
-  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
-                 size = 1.5, alpha = 1, colour = "red")  + 
-  geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate6_1, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 6, y = average_estimate6_1 - 0.05, label = paste("Average:", round(average_estimate6_1, 2))) + 
-  scale_y_continuous(limits = c(-0.3, 0.9)) +
-  labs(x = "", y = "z-value") +
-  theme_bw() +
-  theme(text = element_text(size = 25)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-ggsave("appliances_forest_nooutliers.png", width = 12.5, height = 9.375)
-
-# this gets really silly so i'm not sure about presenting this
-```
-
-```{r}
-# # create binary variables for all control factor variables
-# 
-# # iterate over each factor variable
-# for (var_name in controlvars) {
-#   
-#   # get unique factor levels
-#   
-#   levels <- unique(data_purchase3[[var_name]])
-#   
-#   # create binary variables for each factor level
-#   for (level in levels) {
-#     # create a new column name by appending the factor level to the variable name
-#     new_col_name <- paste(var_name, level, sep = "_")
-#     
-#     # create a binary variable for the current factor level
-#     data_purchase3[[new_col_name]] <- as.integer(data_purchase3[[var_name]] == level)
-#   }
-# }
-
-```
-
-```{r}
+```{r prepare for BMA}
 # create a list of control variables
-# data_purchase3$n_interventions <- as.factor(data_purchase3$n_interventions)
+# data_purchase$n_interventions <- as.factor(data_purchase$n_interventions)
 controlvars <- c( 
                   # "counterfactual",
                   # "n_interventions",
@@ -854,26 +368,23 @@ controlvars <- c(
                  "controls_demographics")
 
 metregvar <- c("z_value", "z_variance")
-dfbms <- data_purchase3  %>% select(all_of(metregvar))
+dfbms <- data_purchase  %>% select(all_of(metregvar))
 dfbms <- ungroup(dfbms)
 dfbms <- dfbms %>% select(-c(study_ID))
 # dfbms <- mutate_if(dfbms, is.character, as.numeric)
 # dfbms <- mutate_if(dfbms, is.logical, as.numeric)
-
-
 ```
 
-```{r}
+```{r prepare for BMA}
 # BMA data preparation 
 # create binary variables for all control factor variables
-
 
 # iterate over each factor variable
 for (var_name in controlvars) {
   
   # get unique factor levels
   
-  levels <- unique(data_purchase3[[var_name]])
+  levels <- unique(data_purchase[[var_name]])
   
   # create binary variables for each factor level
   for (level in levels[-1]) {
@@ -881,7 +392,7 @@ for (var_name in controlvars) {
     new_col_name <- paste(var_name, level, sep = "_")
     
     # create a binary variable for the current factor level
-    dfbms[[new_col_name]] <- as.numeric(data_purchase3[[var_name]] == level)
+    dfbms[[new_col_name]] <- as.numeric(data_purchase[[var_name]] == level)
   }
 }
 
@@ -889,23 +400,14 @@ names(dfbms) <- gsub(" ", "_", names(dfbms))
 dfbms <- mutate_if(dfbms, is.character, as.numeric)
 dfbms <- mutate_if(dfbms, is.logical, as.numeric)
 summary(dfbms)
-
-# new_order <- sort(colnames(dfbms))
-# dfbms <- dfbms[, new_order]
-# select(-c(intervention_Information, appliance_Lighting))
 ```
 
-```{r}
+```{r ! run BMA -- Tarun to review this cell}
 percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000, mcmc="bd", user.int=FALSE)
 percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
 percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
-# percent3 = bms(dfbms, burn=1e5,iter=3e5, g="hyper=BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 
 coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
-# coef$CI.l = coef$`Post Mean` - 2*coef$`Post SD`
-# coef$CI.u = coef$`Post Mean` + 2*coef$`Post SD`
-# case_when()
-# print(coef)
 
 image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
 summary(percent)
@@ -922,58 +424,26 @@ write.table(coeff,"BMA_estimates.csv")
 
 ############## ROBUSTNESS CHECKS  OLS-Frequentist###################################################
 
-levels(data_purchase3$intervention) <- gsub(" ", "_", levels(data_purchase3$intervention))
-levels(data_purchase3$statistical_technique) <- gsub(" ", "_", levels(data_purchase3$statistical_technique))
-levels(data_purchase3$appliance) <- gsub(" ", "_", levels(data_purchase3$appliance))
-levels(data_purchase3$incentive_follow_through) <- gsub(" ", "_", levels(data_purchase3$incentive_follow_through))
-levels(data_purchase3$participant_type) <- gsub(" ", "_", levels(data_purchase3$participant_type))
-levels(data_purchase3$reportingBiases) <- gsub(" ", "_", levels(data_purchase3$reportingBiases))
-levels(data_purchase3$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase3$outOfSampleBias))
+levels(data_purchase$intervention) <- gsub(" ", "_", levels(data_purchase$intervention))
+levels(data_purchase$statistical_technique) <- gsub(" ", "_", levels(data_purchase$statistical_technique))
+levels(data_purchase$appliance) <- gsub(" ", "_", levels(data_purchase$appliance))
+levels(data_purchase$incentive_follow_through) <- gsub(" ", "_", levels(data_purchase$incentive_follow_through))
+levels(data_purchase$participant_type) <- gsub(" ", "_", levels(data_purchase$participant_type))
+levels(data_purchase$reportingBiases) <- gsub(" ", "_", levels(data_purchase$reportingBiases))
+levels(data_purchase$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase$outOfSampleBias))
 
-data_purchase3$participant_type <- relevel(data_purchase3$participant_type, ref = "residents")
-data_purchase3$intervention1 <- relevel(data_purchase3$intervention, ref = "Rebate")
+data_purchase$participant_type <- relevel(data_purchase$participant_type, ref = "residents")
+data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
 
-levels(data_purchase3$intervention1)[levels(data_purchase3$intervention1) %in% c("Information", "Label")] <- "Info"
+levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
 
 topmod<- lm(z_value ~ intervention1+z_variance+appliance+ incentive_follow_through+reportingBiases+
               participant_type+statistical_technique+outOfSampleBias+0
 
-            ,data = data_purchase3)
-coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t")
+            ,data = data_purchase)
+coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase$study_ID, test = "naive-t")
 coeff_top
 write.table(coeff_top,"Fcheck.csv")
-
-```
-
-```{r}
-# figures
-library(metafor)
-library(tidyverse)
-library(ggplot2)
-library(patchwork)
-library(xtable)
-```
-
-```{r}
-# plot z-values
-# grouped by appliance
-# coloured by intervention_category
-
-fp <- ggplot(data=data_purchase1, aes(x=appliance, y=z_value, ymin=z_value, ymax=z_value, colour = intervention_category)) +
-        geom_pointrange(size=0.5) + 
-        geom_hline(yintercept=0, lty=2) +  # add a dotted line at x=1 after flip
-        coord_flip() +  # flip coordinates (puts labels on y axis)
-        xlab("") + ylab("Effect size on purchase probability") +
-        theme_bw() + theme(axis.text.x = element_blank(),
-    axis.ticks.x = element_blank())
-  #+ geom_label_repel(aes(label = paste0(round(percent_change, 2), "%")), size = 2, colour = "black", max.overlaps = 30)
-# this requires CI
-
-print(fp)
-```
-
-```{r}
-ggplot(data_purchase3, aes(x = appliance, y = z_value , colour = intervention_category))
 ```
 
 
