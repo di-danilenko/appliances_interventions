@@ -320,9 +320,14 @@ average_num_effect_sizes <- mean(appliances$num_effect_sizes, na.rm = TRUE)
 # Print the average number of effect sizes
 print(average_num_effect_sizes)
 ```
+
 ```{r}
 appliances <- appliances %>%
-  filter(!(study_ID %in% c('117','122', '152')))
+  filter(!(study_ID %in% c('117','122','152')))
+# 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
+# 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
+# 152 exclude at the moment as it was published after we first ran the queries and gathered literature
+
 appliances$study_ID[appliances$authors == "Yao, Liu, Yan"] <- "305"
 
 # 278 observations
@@ -330,7 +335,7 @@ appliances$study_ID[appliances$authors == "Yao, Liu, Yan"] <- "305"
 
 table(appliances$intervention)
 
-loan <- appliances %>% filter (intervention == "Loan")
+#loan <- appliances %>% filter (intervention == "Loan")
 
 print(length(unique(appliances$study_ID)))
 ```
