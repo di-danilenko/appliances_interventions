@@ -12,9 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load libraries}
 library(tidyverse)
 library(ggplot2)
-#library(meta)
-#library(metafor)
-#library(metadat)
 library(haven)
 library(writexl)
 library(openxlsx)
@@ -26,14 +23,14 @@ library(shiny)
 ```
 
 ```{r open dataset}
-setwd("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions/")
+setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/")
 #setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
 load("appliances_clean.R")
 ```
 
-```{r}
+```{r define variables}
 ################DESCRIPTIVE STATISTICS##################################
-outputPath <- c("/Users/dianadanilenko/Desktop/MCC general/appliances_interventions/")
+outputPath <- c("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/")
 
 short_summ    <- c("appliance",
                    "intervention",
@@ -58,7 +55,7 @@ sumVarsCatego <- c(
   "controls_demographics")
 
 # for these factor variables we want normal summary stats
-sumVarsFactor <- c("study_ID",
+sumVarsFactor <- c(#"study_ID",
                    "appliance",
                    "intervention",
                    "continent",
@@ -83,9 +80,7 @@ sumvarsNum <- c("year_publication",
                 "percent_change",
                 "total_sample_size",
                 "z_value",
-                "z_variance",
-                 "z_value_obs",
-                "z_variance_obs")
+                "z_variance")
 
 # for study ID we only want to see the count of unique values
 sumVars <- c(short_summ,sumVarsCatego, sumvarsNum)
@@ -94,132 +89,31 @@ appliances[sumVarsFactor] <- lapply(appliances[sumVarsFactor], factor)
 appliances[sumvarsNum] <- lapply(appliances[sumvarsNum], as.numeric)
 ```
 
-```{r}
-total_population <- dfinc5 %>%
-  distinct(study_ID, .keep_all = TRUE) %>%
-  summarise(total_population = sum(total_sample_size, na.rm = TRUE))
+```{r define data subset}
+# dfinc <- appliances
 
-freq(dfinc5$incentive_follow_through)
-
-total_countries <- dfinc5 %>%
-  distinct(study_ID, .keep_all = TRUE) %>%
-  summarise(country = median(country, na.rm = TRUE))
-
-freq(total_countries$country)
-```
-
-
-```{r full dataset}
-# first, run this without any exlusions
-dfinc4 <- appliances # full dataset
-# second, check the outputs of summary stats
-# third, run on subsets if needed
-```
-
-```{r data subsets}
-# dfinc <- data_purchase purchase probability
-# include WTP and purchase probability together
-data_purchase1 <- data.frame()
+data_purchase <- data.frame()
 # filter to a needed dependent variable
-data_purchase1 <- appliances %>%
+data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
-dfinc5 <- data_purchase1 # purchase probability and WTP
 
-data_usage <- data.frame()
-# filter to a needed dependent variable
-data_usage <- appliances %>% 
-                  filter(dep_variable_purchase_category == "energy use after switching to a more efficient appliance")
-dfinc1 <- data_usage # usage
-
-data_marketshare <- data.frame()
-# filter to a needed dependent variable
-data_marketshare <- appliances %>% 
-                  filter(dep_variable_purchase_category == "market share of efficient appliance")
-dfinc2 <- data_marketshare # market share
-
-# dfinc3 <- data_wtp wtp
-
-dfinc6 <- dfinc4 %>%
-  filter(intervention_category == "Information Strategies")
-
-dfinc7 <- dfinc4 %>%
-  filter(intervention_category == "Economic Incentives")
-
-#dfinc8 <- data_purchase3 # excluding outliers
+dfinc <- data_purchase
 ```
 
-```{r summary stats full dataset}
+```{r summary stats}
 
-for(col in names(select(dfinc4,all_of(sumVarsFactor)))) {
-  freq_table <- freq(dfinc4[[col]], style = "rmarkdown", cumul=FALSE, report.nas = FALSE)
-  print(freq_table)
-}
+# for(col in names(select(dfinc,all_of(sumVarsFactor)))) {
+#   freq_table <- freq(dfinc[[col]], style = "rmarkdown", cumul=FALSE, report.nas = FALSE)
+#   print(freq_table)
+# }
+# 
+# freq(select(dfinc, all_of(sumvarsNum)), cumul = FALSE)
 
-# this line is causing error 
-# and the summary output only contains the results for one study_ID = 101
-freq(select(dfinc4, all_of(sumvarsNum)), cumul = FALSE)
-# freq(dfinc4[short_summ[1]], cumul = FALSE)
-
-dfinc4 %>% group_by(dep_variable_purchase_category) %>%
+# change output file name based on the data
+dfinc %>% group_by() %>%
   select(all_of(sumVars)) %>% 
   dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
-  print(file = "summarystatistics_all.html")
-rmarkdown::render("summarystatistics_all.html", output_file = "summarystatistics_all.doc")
+  print(file = "summarystatistics_purchase.html")
+rmarkdown::render("summarystatistics_purchase.html", output_file = "summarystatistics_purchase.doc")
 
-```
-
-```{r}
-freq(select(dfinc8, all_of(short_summ)), cumul = FALSE)
-
-dfinc8 %>% select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_purchase.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_purchase.html"), output_file = paste0(outputPath, "summarystatistics_purchase.doc"))
-```
-
-```{r}
-freq(select(dfinc1, all_of(short_summ)), cumul = FALSE)
-
-dfinc1 %>% group_by(dep_variable_purchase_category) %>%
-  select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = "summarystatistics_usage.html")
-rmarkdown::render("summarystatistics_usage.html", output_file = paste0(outputPath, "summarystatistics_usage.doc"))
-```
-
-```{r}
-freq(select(dfinc5, all_of(short_summ)), cumul = FALSE)
-
-dfinc5 %>% group_by(dep_variable_purchase_category) %>%
-  select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_purchase.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_purchase.html"), output_file = paste0(outputPath, "summarystatistics_purchase.doc"))
-```
-
-```{r}
-freq(select(dfinc2, all_of(short_summ)), cumul = FALSE)
-
-dfinc2 %>% group_by(dep_variable_purchase_category) %>%
-  select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_marketshare.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_marketshare.html"), output_file = paste0(outputPath, "summarystatistics_marketshare.doc"))
-```
-```{r}
-freq(select(dfinc6, all_of(short_summ)), cumul = FALSE)
-
-dfinc6 %>% select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_info.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_info.html"), output_file = paste0(outputPath, "summarystatistics_info.doc"))
-```
-
-```{r}
-freq(select(dfinc6, all_of(short_summ)), cumul = FALSE)
-
-dfinc7 %>% select(all_of(sumVars)) %>% 
-  dfSummary(graph.col = T, style = "grid")  %>% 
-  print(file = paste0(outputPath, "summarystatistics_monetary.html"))
-rmarkdown::render(paste0(outputPath, "summarystatistics_monetary.html"), output_file = paste0(outputPath, "summarystatistics_monetary.doc"))
 ```
