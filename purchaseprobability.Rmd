@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
-#setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
+# setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
+setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
@@ -196,7 +196,7 @@ library(ggrepel)
 library(RColorBrewer)
 # Define a color palette with enough colors for each unique appliance
 palette <- brewer.pal(length(unique(data_purchase$appliance)),"Set1")
-appliance_colors <- setNames(palette, unique(data_marketshare$appliance))
+appliance_colors <- setNames(palette, unique(data_purchase$appliance))
 
 ### FUNNEL PLOT ###
 funnel(
@@ -207,14 +207,16 @@ funnel(
   legend = FALSE # We'll create the legend manually
 )
 
-# causes error -- Tarun 
-# Create the legend manually using the legend() function
-legend("topright", # Position of the legend
-       legend = levels(as.factor(data_purchase$appliance)), # Legend labels
-       col = my_colors, # Legend colors
-       pch = 15, # Point type (change if needed)
-       title = "Appliance" # Legend title (change if needed)
-)
+# # causes error -- Tarun
+# # Create the legend manually using the legend() function
+# legend("topright", # Position of the legend
+#        legend = levels(as.factor(data_purchase$appliance)), # Legend labels
+#        col = appliance_colors, 
+#        pch = 15, # Point type (change if needed)
+#        title = "Appliance", # Legend title (change if needed)
+#        cex = 0.8
+# )
+
 
 palette <- brewer.pal(length(unique(data_purchase$intervention_category)),"Set1")
 intervention_colors <- setNames(palette, unique(data_purchase$intervention_category))
@@ -228,14 +230,14 @@ funnel(
   legend = FALSE # We'll create the legend manually
 )
 
-# causes error -- Tarun
-# Create the legend manually using the legend() function
-legend("topright", # Position of the legend
-       legend = levels(as.factor(data_purchase$intervention_category)), # Legend labels
-       col = my_colors, # Legend colors
-       pch = 15, # Point type (change if needed)
-       title = "Intervention" # Legend title (change if needed)
-)
+# # causes error -- Tarun
+# # Create the legend manually using the legend() function
+# legend("topright", # Position of the legend
+#        legend = levels(as.factor(data_purchase$intervention_category)), # Legend labels
+#        # col = my_colors, # Legend colors
+#        # pch = 15, # Point type (change if needed)
+#        title = "Intervention" # Legend title (change if needed)
+# )
 
 data_purchase$se = (data_purchase$z_variance)^(1/2)
 
@@ -251,10 +253,10 @@ meta_egger_1 <-rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moder
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger_1)
 
-meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ intervention+se,
+meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger1)
-# Tarun -- could you have a look which ones from these to keep?
+
 meta_egger1_1 <-rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se^2,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_egger1_1)
