@@ -68,10 +68,18 @@ summary(meta_model4)
 # random effects by appliance
 
 ### MULTI-LEVEL MODEL ###
+meta_model0 <-robust(rma.mv(z_value, z_variance, # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
+
 meta_model5 <- robust(rma.mv(z_value, z_variance, mods =  ~ intervention+0,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta_model5)
 # random effects multi-level by intervention
+
+meta_model6 <- robust(rma.mv(z_value, z_variance, mods =  ~ appliance+0,
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
+summary(meta_model6)
+# random effects by appliance
 
 ### INTERACTION INTERVENTION X APPLIANCE ###
 data_purchase1 <- data_purchase %>%
@@ -83,6 +91,7 @@ summary(meta_model7)
 # random effects multi-level interaction between intervention category and appliance
 ```
 
+
 ```{r forest plot}
 ### AVERAGE EFFECT PLOT ### 
 
@@ -90,17 +99,18 @@ coef_summary5 <- coef(summary(meta_model5))
 
 rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
-average_estimate5 <- mean(coef_summary5$estimate)
+average_estimate5 <- coef(meta_model0)
 ggplot(coef_summary5,
        aes(x = row.names(coef_summary5), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate5, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 3.5, y = average_estimate5 - 0.05, label = paste("Average:", round(average_estimate5, 2)), size = 4.5) + 
-  scale_y_continuous(limits = c(-0.15, 0.35)) +
+  geom_hline(yintercept = average_estimate5, linetype = "dashed", color = "black", size = .5) +
+    geom_hline(yintercept = 0, color = "gray", size = .5)+
+  annotate("text", x = 3.5, y = average_estimate5 - 0.025, label = paste("Average:", round(average_estimate5, 2)), size = 4.5) +
+  # scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-  ylim(-.2, 0.31)+
+  # ylim(-.2, 0.31)+
   theme_bw() +
   theme(text = element_text(size = 20))
 ggsave("interventions_forest.png")
@@ -109,21 +119,24 @@ coef_summary6 <- coef(summary(meta_model6))
 
 rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
 
-average_estimate6 <- mean(coef_summary6$estimate)
+average_estimate6 <- coef(meta_model0)
 ggplot(coef_summary6,
        aes(x = row.names(coef_summary6), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
-                 size = 1.5, alpha = 1, colour = "red")  + 
+                 size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate6, linetype = "dashed", color = "black", size = 1) +
-  annotate("text", x = 6, y = average_estimate6 - 0.05, label = paste("Average:", round(average_estimate6, 2)), size = 4.5) + 
-  scale_y_continuous(limits = c(-0.15, 0.35)) +
+  geom_hline(yintercept = average_estimate6, linetype = "dashed", color = "black", size = .5) +
+  geom_hline(yintercept = 0, color = "gray", size = .5)+
+  annotate("text", x = 6, y = average_estimate6 - 0.025, label = paste("Average:", round(average_estimate6, 2)), size = 4.5) +
+  # scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-    ylim(-.2, 0.31)+
+    # ylim(-.2, 0.31)+
   theme_bw() +
   theme(text = element_text(size = 20)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 ggsave("appliances_forest.png")
+
 ```
+
 
 ```{r extra graphs}
 ### FREQUENCY TABLES AND DISTRIBUTIONS
@@ -182,7 +195,7 @@ ggplot(data_purchase, aes(x = z_value, y = as.factor(reportingBiases))) +
   geom_jitter(height = .1, alpha = .1) 
 ```
 
-```{r ! assess publication bias -- Tarun to review this cell}
+```{r assess publication bias}
 ### PUBLICATION BIAS ASSESSMENT ###
 library(lmtest)
 
@@ -239,157 +252,178 @@ data_purchase$se = (data_purchase$z_variance)^(1/2)
 meta <-robust(rma.mv(z_value, z_variance, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta)
-
 meta_egger <-robust(rma.mv(z_value, z_variance, mods =  ~ se, # add all moderator variables
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta_egger)
 
-meta_egger_1 <-robust(rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moderator variables
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
-summary(meta_egger_1)
 
 meta_egger1 <-robust(rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta_egger1)
-
-meta_egger1_1 <-robust(rma.mv(z_value, z_variance, mods =  ~ 0+intervention+se^2,
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
-summary(meta_egger1_1)
-
 meta_egger2_2 <-robust(rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta_egger2_2)
 
+
 # bias correction
+
+meta_egger_1 <-robust(rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moderator variables
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
+summary(meta_egger_1)
 meta_egger3 <-robust(rma.mv(z_value, z_variance, mods =  ~ 0+intervention+z_variance, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta_egger3)
-
 meta_egger4 <-robust(rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance, 
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, clubSandwich = T)
 summary(meta_egger4)
 
-robust_model <- robust(meta_egger3, cluster = study_ID, clubSandwich = TRUE, vcov = "CR2")
-summary(robust_model)
-
-# Information, Label = Rebate --> Yes! cannot reject the null of equivalence
-constraints <-  rbind(c(1, 0, 0, -1,0, 0), c(0, 1, 0, -1,0, 0))  # Example for comparing level A and B to level C
-wald_test <- Wald_test(robust_model, constraints = constraints, vcov = "CR2") 
-wald_test
-
-# Information, Label = Subsidy --> Yes! cannot reject the null
-constraints <-  rbind(c(1, 0, 0, 0,-1, 0), c(0, 1, 0, 0,-1, 0))  # Example for comparing level A and B to level C
-wald_test <- Wald_test(robust_model, constraints = constraints, vcov = "CR2") 
-wald_test
-
-# Information, Label = Loan --> No! reject the null
-constraints <-  rbind(c(1, 0, -1, 0, 0, 0), c(0, 0, -1, 0, 0, 0))  # Example for comparing level A and B to level C
-wald_test <- Wald_test(robust_model, constraints = constraints, vcov = "CR2") 
-wald_test
-
-# Compare the full and reduced models 
-reduced_meta_egger3 <-robust(rma.mv(z_value, z_variance, mods =  ~ I(intervention != c("Rebate"))+0+z_variance,
-                           random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "ML"), cluster = study_ID, clubSandwich = TRUE, vcov = "CR2")
-anova_results <- anova(robust_model, reduced_meta_egger3, refit = T) 
-print(anova_results)
-
-# Compare the full and reduced models 
-reduced_meta_egger3 <-robust(rma.mv(z_value, z_variance, mods =  ~ I(intervention != c("Loan"))+0+z_variance,
-                           random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "ML"), cluster = study_ID, clubSandwich = TRUE, vcov = "CR2")
-anova_results <- anova(robust_model, reduced_meta_egger3, refit = T) 
-print(anova_results)
 
 ```
 
 ```{r identify outliers}
 # these thresholds are identified by looking at the graphs and identifying the peaks
 
-#intervention model
-threshold <- 0.1
-x5 <- cooks.distance(meta_model5)
-plot(x5, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-for (i in 1:length(x5)) {
-  if (x5[i] > threshold) {
-    text(i, x5[i], i, cex = 1, pos = 4, col = "red")
-  }
-}
-
-below_threshold_rows5 <- which(x5 < threshold)
-data_purchase5 <- data_purchase[below_threshold_rows5,]
-
-plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-text(x5,labels=names(x5))
-
-above_threshold_rows5 <- which(x5 > threshold)
-outlier_cooksd5 <- data_purchase[above_threshold_rows5,]
-
-# # appliance model
-# threshold <- 0.1
-
-# # x6 <- cooks.distance(meta_model6)
-# 
-# plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-# for (i in 1:length(x6)) {
-#   if (x6[i] > threshold) {
-#     text(i, x6[i], i, cex = 1, pos = 4, col = "red")
+# # intervention model
+# threshold <- .2
+# # x5 <- cooks.distance(meta_model5)
+# plot(x5, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+# for (i in 1:length(x5)) {
+#   if (x5[i] > threshold) {
+#     text(i, x5[i], i, cex = 1, pos = 4, col = "red")
 #   }
 # }
 # 
-# below_threshold_rows6 <- which(x6 < threshold)
-# data_purchase6 <- data_purchase[below_threshold_rows6,]
+# below_threshold_rows5 <- which(x5 < threshold)
+# data_purchase5 <- data_purchase[below_threshold_rows5,] #%>% filter(study_ID != "103")%>% filter(study_ID != "123")
 # 
-# plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
-# text(x6,labels=names(x6))
+# plot(x5, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+# text(x5,labels=names(x5))
 # 
-# above_threshold_rows6 <- which(x6 > threshold)
-# outlier_cooksd6 <- data_purchase[above_threshold_rows6,]
+# above_threshold_rows5 <- which(x5 > threshold)
+# outlier_cooksd5 <- data_purchase[above_threshold_rows5,]
+
+# # appliance model
+threshold <- 2
+
+# x6 <- cooks.distance(meta_model6)
+
+plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+for (i in 1:length(x6)) {
+  if (x6[i] > threshold) {
+    text(i, x6[i], i, cex = 1, pos = 4, col = "red")
+  }
+}
+
+below_threshold_rows6 <- which(x6 < threshold)
+data_purchase6 <- data_purchase[below_threshold_rows6,]
+
+plot(x6, type="o", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
+text(x6,labels=names(x6))
+
+above_threshold_rows6 <- which(x6 > threshold)
+outlier_cooksd6 <- data_purchase[above_threshold_rows6,]
 ```
 
 ```{r test models without outliers}
-### TESTING MODELS WITHOUT OUTLIERS AND PUBLICATION BIAS ###
+### TESTING MODELS WITHOUT OUTLIERS & PUBLICATION BIAS ###
 
-meta_model5_1 <-robust(rma.mv(z_value, z_variance, mods =  ~ intervention+0+z_variance, random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML"), cluster = study_ID, clubSandwich = T)
-summary(meta_model5_1)
+# meta_model5_1 <-robust(rma.mv(z_value, z_variance, mods =  ~ intervention+0+z_variance, 
+#                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML"), cluster = study_ID, clubSandwich = T)
+# summary(meta_model5_1)
 
-# Information, Label = Rebate --> Yes! cannot reject the null of equivalence
-constraints <-  rbind(c(1, 0, 0, -1,0, 0), c(0, 1, 0, -1,0, 0))  # Example for comparing level A and B to level C
-wald_test <- Wald_test(robust_model, constraints = constraints, vcov = "CR2") 
-wald_test
+# # Information = Label  --> Yes! cannot reject the null of equivalence
+# constraints <-  rbind(c(1, -1, 0, 0 ,0))  
+# wald_test <- Wald_test(meta_model5_1, constraints = constraints, vcov = "CR2") 
+# wald_test
+# 
+# # Information = Label = Loan --> No! reject the null
+# constraints <-  rbind(c(1, 0, -1, 0,0), c(0, 1, -1, 0,0))  
+# wald_test <- Wald_test(meta_model5_1, constraints = constraints, vcov = "CR2") 
+# wald_test
+# 
+# # Information = Label = Rebate --> Yes! cannot reject the null of equivalence
+# constraints <-  rbind(c(1, 0, 0, -1,0), c(0, 1, 0, -1,0))  # Example for comparing level A and B to level C
+# wald_test <- Wald_test(meta_model5_1, constraints = constraints, vcov = "CR2") 
+# wald_test
+# 
+# # Information, Label = Rebate = Subsidy --> Yes! cannot reject the null
+# constraints <-  rbind(c(1, 0, 0, 0,-1), c(0, 1, 0, 0,-1), c(1, 0, 1, 0,-1)) 
+# wald_test <- Wald_test(meta_model5_1, constraints = constraints, vcov = "CR2") 
+# wald_test
+# 
+# constraints <-  rbind(c(1, 0, -1, 0, 0), c(0, 0, -1, 0, 0)) 
+# wald_test <- Wald_test(meta_model5_1, constraints = constraints, vcov = "CR2") 
+# wald_test
+# 
+# # Compare the full and reduced models 
+# meta_model5_1 <-robust(rma.mv(z_value, z_variance, mods =  ~ intervention+0, 
+#                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "ML"), cluster = study_ID, clubSandwich = T)
+# 
+# reduced_meta_model5_1 <- robust(rma.mv(z_value, z_variance, mods =  ~ I(intervention != c("Loan"))+0,
+#                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "ML"), cluster = study_ID, clubSandwich = T)
+# anova_results <- anova(meta_model5_1, reduced_meta_model5_1, refit = T) 
+# print(anova_results)
 
-# Information, Label = Subsidy --> Yes! cannot reject the null
-constraints <-  rbind(c(1, 0, 0, 0,-1, 0), c(0, 1, 0, 0,-1, 0))  # Example for comparing level A and B to level C
-wald_test <- Wald_test(robust_model, constraints = constraints, vcov = "CR2") 
-wald_test
-
-# Information, Label = Loan --> No! reject the null
-constraints <-  rbind(c(1, 0, -1, 0, 0, 0), c(0, 0, -1, 0, 0, 0))  # Example for comparing level A and B to level C
-wald_test <- Wald_test(robust_model, constraints = constraints, vcov = "CR2") 
-wald_test
-
-# Compare the full and reduced models 
-reduced_meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ I(intervention != c("Loan"))+0,
-                           random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-anova_results <- anova(meta_model5, reduced_meta_model5, refit = T) 
-print(anova_results)
-
-
-
-
-meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance + 0+z_variance,  
+meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase6, method = "REML")
 summary(meta_model6_1)
 
-# both categories equally effective
+# # both categories equally effective
+# 
+# data_purchase2 <- data_purchase %>%
+#   filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
+#   filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
+#   # filter(! intervention == "Loan") %>%
+#   filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
+# 
+# meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
+#                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+# summary(meta_model7)
+```
 
-data_purchase2 <- data_purchase %>%
-  filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  filter(! sr_no %in% outlier_cooksd6$sr_no) %>%
-  # filter(! intervention == "Loan") %>%
-  filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
 
-meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
-summary(meta_model7)
+```{r forest plot}
+### AVERAGE EFFECT PLOT ### 
+
+coef_summary5 <- coef(summary(meta_model5_1))[-6,]
+
+rownames(coef_summary5) <- c("Information \n(n = 67)","Label \n(n = 77)","Loan \n(n = 6)","Rebate \n(n = 28)","Subsidy \n(n = 27)")
+
+average_estimate5 <- coef(meta_egger_1)[1]
+ggplot(coef_summary5,
+       aes(x = row.names(coef_summary5), y = estimate)) +
+  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
+                 size = 1.5, alpha = 1, colour = "red")  +
+  geom_point(size = 3) +
+  geom_hline(yintercept = average_estimate5, linetype = "dashed", color = "black", size = .5) +
+    geom_hline(yintercept = 0, color = "gray", size = .5)+
+  annotate("text", x = 3.5, y = average_estimate5 - 0.025, label = paste("Average:", round(average_estimate5, 2)), size = 4.5) +
+  # scale_y_continuous(limits = c(-0.15, 0.35)) +
+  labs(x = "", y = "z-value") +
+    ylim(-.5, 0.6)+
+  theme_bw() +
+  theme(text = element_text(size = 20))
+ggsave("interventions_forest.png")
+
+coef_summary6 <- coef(summary(meta_model6_1))[-10,]
+
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
+
+average_estimate6 <- coef(meta_egger_1)[1]
+ggplot(coef_summary6,
+       aes(x = row.names(coef_summary6), y = estimate)) +
+  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
+                 size = 1.5, alpha = 1, colour = "red")  +
+  geom_point(size = 3) +
+  geom_hline(yintercept = average_estimate6, linetype = "dashed", color = "black", size = .5) +
+  geom_hline(yintercept = 0, color = "gray", size = .5)+
+  annotate("text", x = 6, y = average_estimate6 - 0.025, label = paste("Average:", round(average_estimate6, 2)), size = 4.5) +
+  # scale_y_continuous(limits = c(-0.15, 0.35)) +
+  labs(x = "", y = "z-value") +
+    ylim(-.5, 0.6)+
+  theme_bw() +
+  theme(text = element_text(size = 20)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+ggsave("appliances_forest.png")
 ```
 
 ```{r prepare for BMA}
