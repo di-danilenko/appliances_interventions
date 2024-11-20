@@ -73,6 +73,7 @@ appliances$year_data_study <- as.numeric(appliances$year_data_study)
 appliances$year_publication <- as.numeric(appliances$year_publication)
 ```
 
+
 ```{r}
 columns <- c("z_value", "z_variance","year_data_study","p_value","control_mean","control_sample_size","control_sd","treated_mean","treatment_sample_size","treated_sd","total_observations", "diff_mean","pooled_sd","monetary_incentive_size","monetary_incentive_relative","label_monetary_size","label_consumption_size","d_value", "coefficient", "coefficient_se")
 appliances[columns] <- lapply(appliances[columns], as.numeric)
@@ -151,57 +152,57 @@ appliances$lmic <- as.factor(appliances$lmic)
 # clean statistical technique field
 appliances$statistical_technique <- ifelse(
   grepl("logit", appliances$statistical_technique, ignore.case = TRUE),
-  "logit",
+  "Logit / Probit",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("probit", appliances$statistical_technique, ignore.case = TRUE),
-  "probit",
+  "Logit / Probit",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("binomial", appliances$statistical_technique, ignore.case = TRUE),
-  "linear probability model",
+  "Other",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("ITT", appliances$statistical_technique, ignore.case = TRUE),
-  "logit",
+  "Logit / Probit",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("tobit", appliances$statistical_technique, ignore.case = TRUE),
-  "other",
+  "Other",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("ANOVA", appliances$statistical_technique, ignore.case = TRUE),
-  "other",
+  "Other",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("matching", appliances$statistical_technique, ignore.case = TRUE),
-  "other",
+  "Other",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("2SLS", appliances$statistical_technique, ignore.case = TRUE),
-  "2SLS",
+  "OLS",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("OLS", appliances$statistical_technique, ignore.case = TRUE),
-  "OLS/WLS",
+  "OLS",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("squares", appliances$statistical_technique, ignore.case = TRUE),
-  "OLS/WLS",
+  "OLS",
   appliances$statistical_technique
 )
 appliances$statistical_technique <- ifelse(
   grepl("IV", appliances$statistical_technique, ignore.case = FALSE),
-  "2SLS",
+  "OLS",
   appliances$statistical_technique
 )
 
@@ -238,10 +239,17 @@ appliances$study_design <- ifelse(
 )
 
 appliances$study_design <- ifelse(
-  appliances$study_design %in% c("diff-in-diff","simulated counterfactual"),
-  "control & treatment",
+  appliances$study_design %in% c("simulated counterfactual"),
+  "simulated counterfactual",
   appliances$study_design
 )
+
+appliances$study_design <- ifelse(
+  appliances$study_design %in% c("diff-in-diff"),
+  "DID",
+  appliances$study_design
+)
+
 appliances$study_design <- ifelse(
   grepl("correlation", appliances$study_design, ignore.case = TRUE),
   "pre and post",
@@ -339,6 +347,7 @@ table(appliances$intervention)
 
 print(length(unique(appliances$study_ID)))
 ```
+
 
 
 ```{r}
