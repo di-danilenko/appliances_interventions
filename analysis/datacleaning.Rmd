@@ -279,7 +279,7 @@ appliances$intervention <- with(appliances, case_when(
   information == 1 ~ "Information",
   label == 1 ~ "Label",
   rebate == 1 ~ "Rebate",
-  tax_credit == 1 ~ "Tax",
+  tax_credit == 1 ~ "Subsidy",
   subsidy == 1 ~ "Subsidy",
   loan == 1 ~ "Loan",
   choice_architecture == 1 ~ "Command & Control",
