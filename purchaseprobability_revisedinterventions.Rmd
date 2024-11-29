@@ -47,7 +47,29 @@ data_purchase <- appliances %>%
 data_purchase$subsidy <- case_when(
   data_purchase$tax_credit == 1 ~ 1,
   TRUE ~ data_purchase$subsidy)
-  
+
+data_purchase$information <- case_when(
+  data_purchase$feedback == 1 ~ 1,
+  TRUE ~ data_purchase$information)
+
+data_purchase$information <- case_when(
+  data_purchase$information == 1 & data_purchase$label ~ 0,
+  TRUE ~ data_purchase$information)
+
+
+
+table(data_purchase$feedback)
+table(data_purchase$information)
+table(data_purchase$label)
+table(data_purchase$subsidy)
+table(data_purchase$rebate)
+table(data_purchase$loan)
+table(data_purchase$tax_credit)
+
+appliances$multi_intervention <- rowSums(appliances[c("feedback", "information", "label", "rebate", "tax_credit", "subsidy", "loan", "choice_architecture")])
+
+appliances_multi <- appliances %>% filter(multi_intervention > 1)
+
 ```
 
 ```{r meta analysis}
@@ -296,7 +318,7 @@ summary(meta_egger4)
 # intervention model
 # x5 <- cooks.distance(meta_model5)
 
-threshold <- .5
+threshold <- .3
 plot(x5, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 for (i in 1:length(x5)) {
   if (x5[i] > threshold) {
@@ -516,7 +538,7 @@ percent = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="uniform", nmodel=50000,
 percent1 = bms(dfbms, burn=1e5,iter=3e5, g="UIP", mprior="dilut", nmodel=50000, mcmc="bd", user.int=FALSE)
 percent2 = bms(dfbms, burn=1e5,iter=3e5, g="BRIC", mprior="random", nmodel=50000, mcmc="bd", user.int=FALSE)
 
-coef <- as.data.frame(coef(percent, order.by.pip = F, exact=T, yprop2pip=T, include.constant=T))
+coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, include.constant=T))
 
 # image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
 # summary(percent)
@@ -542,17 +564,19 @@ levels(data_purchase$reportingBiases) <- gsub(" ", "_", levels(data_purchase$rep
 levels(data_purchase$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase$outOfSampleBias))
 levels(data_purchase$study_design) <- gsub(" ", "_", levels(data_purchase$study_design))
 
-data_purchase$participant_type <- relevel(data_purchase$participant_type, ref = "residents")
+data_purchase$participant_type <- relevel(data_purchase$participant_type, ref = "homeowners")
 data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
 
 levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
 
-topmod<- lm(z_value ~ z_variance+information+label+loan+rebate+subsidy+ appliance+ incentive_follow_through+reportingBiases+
+topmod<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance+ incentive_follow_through+reportingBiases+
               participant_type+outOfSampleBias#+statistical_technique
             
             ,data = data_purchase)
 coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase$study_ID, test = "naive-t")
+
 write.table(coeff_top,"Fcheck.csv")
+
 ```
 
 

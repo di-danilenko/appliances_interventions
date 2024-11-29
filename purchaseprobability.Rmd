@@ -41,9 +41,24 @@ options(scipen = 999)
 ```{r filter to a needed dependent variable}
 data_purchase <- data.frame()
 # include WTP and purchase probability together
+appliances$intervention <- with(appliances, case_when(
+  feedback == 1 ~ "Information",
+  label == 1 ~ "Label",
+  information == 1 ~ "Information",
+  rebate == 1 ~ "Rebate",
+  tax_credit == 1 ~ "Tax",
+  subsidy == 1 ~ "Subsidy",
+  loan == 1 ~ "Loan",
+  choice_architecture == 1 ~ "Command & Control",
+  TRUE ~ NA_character_
+))
+appliances$intervention <- as.factor(appliances$intervention)
+
 data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance")) 
 #%>% filter(intervention != "Loan") #%>% filter(study_ID != "123") %>% filter(study_ID != "111")#%>% filter(study_ID != "103")
+
+
 ```
 
 ```{r meta analysis}
