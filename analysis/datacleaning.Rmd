@@ -272,14 +272,28 @@ appliances_multi <- appliances %>% filter(multi_intervention > 1)
 # 48 obs
 ```
 
+```{r}
+purchase <- appliances %>% 
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+table(purchase$intervention)
+# 64 information pre-processing
+# 68 information post-processing
+# 109 label pre-processing
+# 77 label post-processing
+# 36 information and 109 label post-processing with label dominant
+```
 
 ```{r}
+
+# there were no experiments on choice architecture, but some studies on command & control interventions, which were recorded in this column initially
+# this ordering overwrites multi-interventions (i.e. label + information is overwritten with label)
+
 appliances$intervention <- with(appliances, case_when(
+  label == 1 ~ "Label",
   feedback == 1 ~ "Information",
   information == 1 ~ "Information",
-  label == 1 ~ "Label",
   rebate == 1 ~ "Rebate",
-  tax_credit == 1 ~ "Tax",
+  tax_credit == 1 ~ "Subsidy",
   subsidy == 1 ~ "Subsidy",
   loan == 1 ~ "Loan",
   choice_architecture == 1 ~ "Command & Control",
