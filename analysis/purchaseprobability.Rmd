@@ -10,12 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
+setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
 #setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
-load("appliances_clean.R")
+load("appliances_clean_label.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -45,6 +45,11 @@ data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
 ```
 
+```{r}
+table(data_purchase$intervention)
+```
+
+
 ```{r meta analysis}
 ### META-ANALYSIS ###
 ### PURCHASE PROBABILITY + WTP
@@ -68,8 +73,8 @@ summary(meta_model4)
 # random effects by appliance
 
 ### MULTI-LEVEL MODEL ###
-meta_model5 <-rma.mv(z_value, z_variance, mods =  ~ intervention+0,
-                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+meta_model5 <- robust(rma.mv(z_value, z_variance, mods =  ~ intervention+0,
+                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML"), cluster = study_ID, club_sandwhich = T)
 summary(meta_model5)
 # random effects multi-level by intervention
 
@@ -93,7 +98,7 @@ summary(meta_model7)
 
 coef_summary5 <- coef(summary(meta_model5))
 
-rownames(coef_summary5) <- c("Information \n(n = 68)","Label \n(n = 77)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
+rownames(coef_summary5) <- c("Information \n(n = 36)","Label \n(n = 109)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
 average_estimate5 <- mean(coef_summary5$estimate)
 ggplot(coef_summary5,
@@ -105,7 +110,7 @@ ggplot(coef_summary5,
   annotate("text", x = 3.5, y = average_estimate5 - 0.05, label = paste("Average:", round(average_estimate5, 2)), size = 4.5) + 
   scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-  ylim(-.2, 0.31)+
+  ylim(-.2, 0.32)+
   theme_bw() +
   theme(text = element_text(size = 20))
 ggsave("interventions_forest.png")
@@ -337,6 +342,11 @@ meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:applia
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
 summary(meta_model7)
 ```
+```{r}
+data_subsidy <- data_purchase %>% filter(intervention=="Subsidy")
+data_rebate <- data_purchase %>% filter(intervention=="Rebate")
+```
+
 
 ```{r prepare for BMA}
 # create a list of control variables
