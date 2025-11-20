@@ -25,7 +25,7 @@ options(scipen = 999)
 
 ```{r}
 # Create a list of file names
-file_names <- c("appliances_purchase.xlsx", "appliances_wtp.xlsx", "appliances_usage.xlsx", "appliances_marketshare.xlsx")
+file_names <- c("appliances_purchase.xlsx", "appliances_wtp.xlsx", "appliances_usage.xlsx", "appliances_marketshare.xlsx","appliances_purchaseprobability_upd.xlsx","appliances_usage_upd.xlsx")
 
 # Initialize an empty list to store the data frames
 data_frames <- list()
@@ -54,7 +54,7 @@ for (file in file_names) {
   df$`controls environmental attitudes` <- as.factor(df$`controls environmental attitudes`)
   df$`controls demographics` <- as.factor(df$`controls demographics`)
   df$percent_change <- as.numeric(df$percent_change)
-  df$counterfactual <- as.factor(df$counterfactual)
+  #df$counterfactual <- as.factor(df$counterfactual)
   data_frames <- append(data_frames, list(df))
 }
 
@@ -269,18 +269,7 @@ appliances$year_data_study <- ifelse(
 appliances$multi_intervention <- rowSums(appliances[c("feedback", "information", "label", "rebate", "tax_credit", "subsidy", "loan", "choice_architecture")])
 
 appliances_multi <- appliances %>% filter(multi_intervention > 1)
-# 48 obs
-```
-
-```{r}
-purchase <- appliances %>% 
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
-table(purchase$intervention)
-# 64 information pre-processing
-# 68 information post-processing
-# 109 label pre-processing
-# 77 label post-processing
-# 36 information and 109 label post-processing with label dominant
+# 63 obs
 ```
 
 ```{r}
@@ -330,6 +319,26 @@ appliances$intervention_category <- as.factor(appliances$intervention_category)
 ```
 
 ```{r}
+# filter out empty rows
+appliances <- appliances %>%
+  filter(!appliance == "NA")
+appliances <- appliances %>%
+  filter(!coder == "NA")
+```
+
+```{r}
+purchase <- appliances %>% 
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+
+table(purchase$intervention)
+# 64 information pre-processing
+# 68 information post-processing
+# 109 label pre-processing
+# 77 label post-processing
+# 36 information and 109 label post-processing with label dominant
+```
+
+```{r}
 appliances <- appliances %>%
   group_by(study_ID) %>%
   mutate(num_effect_sizes = n())
@@ -344,16 +353,10 @@ print(average_num_effect_sizes)
 ```
 
 ```{r}
-appliances <- appliances %>%
-  filter(!(study_ID %in% c('117','122','152')))
-# 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
-# 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
-# 152 exclude at the moment as it was published after we first ran the queries and gathered literature
-
 appliances$study_ID[appliances$authors == "Yao, Liu, Yan"] <- "305"
 
-# 278 observations
-# 58 studies
+# 372 observations
+# 77 studies
 
 table(appliances$intervention)
 
@@ -366,6 +369,7 @@ print(length(unique(appliances$study_ID)))
 
 ```{r}
 # write the clean dataset into an R database
+# before exclusion of outliers, before re-categorising the intervention
 save(appliances, file = "appliances_clean.R")
 ```
 

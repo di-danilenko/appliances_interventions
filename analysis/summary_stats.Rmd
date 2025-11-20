@@ -23,14 +23,14 @@ library(shiny)
 ```
 
 ```{r open dataset}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/")
+setwd("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions")
 #setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
-load("appliances_clean.R")
+load("analysis/appliances_clean.R")
 ```
 
 ```{r define variables}
 ################DESCRIPTIVE STATISTICS##################################
-outputPath <- c("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/")
+outputPath <- c("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions")
 
 short_summ    <- c("appliance",
                    "intervention",
@@ -91,7 +91,9 @@ appliances[sumvarsNum] <- lapply(appliances[sumvarsNum], as.numeric)
 
 ```{r define data subset}
 # dfinc <- appliances
-
+# exclude outliers
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('117','122')))
 data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>%
@@ -115,5 +117,12 @@ dfinc %>% group_by() %>%
   dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
   print(file = "summarystatistics_purchase.html")
 rmarkdown::render("summarystatistics_purchase.html", output_file = "summarystatistics_purchase.doc")
+
+# change output file name based on the data
+appliances %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_all.html")
+rmarkdown::render("summarystatistics_all.html", output_file = "summarystatistics_all.doc")
 
 ```

@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
+setwd("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions/analysis")
 #setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
@@ -40,9 +40,19 @@ options(scipen = 999)
 
 ```{r filter to a needed dependent variable}
 data_purchase <- data.frame()
+# exclude outliers
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('117','122')))
+# 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
+# 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
 # include WTP and purchase probability together
 data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance")) 
+
+data_purchase <- data_purchase %>%
+  filter(!intervention == "Command & Control")
+data_purchase <- data_purchase %>%
+  filter(!appliance == "NA")
 
 data_purchase$subsidy <- case_when(
   data_purchase$tax_credit == 1 ~ 1,
@@ -53,23 +63,13 @@ data_purchase$information <- case_when(
   TRUE ~ data_purchase$information)
 
 data_purchase$information <- case_when(
-  data_purchase$information == 1 & data_purchase$label ~ 0,
+  data_purchase$information == 1 & data_purchase$label == 1 ~ 0,
   TRUE ~ data_purchase$information)
 
+table(data_purchase$appliance)
+table(data_purchase$intervention)
 
-
-table(data_purchase$feedback)
-table(data_purchase$information)
-table(data_purchase$label)
-table(data_purchase$subsidy)
-table(data_purchase$rebate)
-table(data_purchase$loan)
-table(data_purchase$tax_credit)
-
-appliances$multi_intervention <- rowSums(appliances[c("feedback", "information", "label", "rebate", "tax_credit", "subsidy", "loan", "choice_architecture")])
-
-appliances_multi <- appliances %>% filter(multi_intervention > 1)
-
+print(length(unique(data_purchase$study_ID)))
 ```
 
 ```{r meta analysis}
@@ -121,17 +121,9 @@ summary(meta_model7)
 
 ```{r forest plot}
 ### AVERAGE EFFECT PLOT ### 
-table(data_purchase$information) 
-table(data_purchase$label)
-table(data_purchase$loan)
-table(data_purchase$rebate)
-table(data_purchase$subsidy)
-
 coef_summary5 <- coef(summary(meta_model5))
-
-rownames(coef_summary5) <- c("Information \n(n = 64)","Label \n(n = 109)","Loan \n(n = 12)","Rebate \n(n = 34)","Subsidy \n(n = 31)")
-
-average_estimate5 <- coef(meta_model0)
+rownames(coef_summary5) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
+average_estimate5 <- mean(coef_summary5$estimate)
 ggplot(coef_summary5,
        aes(x = row.names(coef_summary5), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
@@ -145,13 +137,13 @@ ggplot(coef_summary5,
   ylim(-.5, 0.5)+
   theme_bw() +
   theme(text = element_text(size = 20))
-ggsave("interventions_forest.png")
+ggsave("revisedinterventions_forest_5.png")
 
+table(data_purchase$appliance)
 coef_summary6 <- coef(summary(meta_model6))
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 35)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 66)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
+average_estimate6 <- mean(coef_summary6$estimate)
 
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
-
-average_estimate6 <- coef(meta_model0)
 ggplot(coef_summary6,
        aes(x = row.names(coef_summary6), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
@@ -165,7 +157,7 @@ ggplot(coef_summary6,
   ylim(-.5, 0.5)+
   theme_bw() +
   theme(text = element_text(size = 20)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-ggsave("appliances_forest.png")
+ggsave("revisedint_appliances_forest_6.png")
 
 ```
 
@@ -247,37 +239,41 @@ funnel(
   legend = FALSE # We'll create the legend manually
 )
 
-# # causes error -- Tarun
-# # Create the legend manually using the legend() function
-# legend("topright", # Position of the legend
-#        legend = levels(as.factor(data_purchase$appliance)), # Legend labels
-#        col = appliance_colors, 
-#        pch = 15, # Point type (change if needed)
-#        title = "Appliance", # Legend title (change if needed)
-#        cex = 0.8
-# )
+# # causes error -- Tarun -- you need to run the plot and the legend at the same time rather than consecutively
+# Create the legend manually using the legend() function
+legend("topright", # Position of the legend
+       legend = levels(as.factor(data_purchase$appliance)), # Legend labels
+       col = appliance_colors,
+       pch = 15, # Point type (change if needed)
+       title = "Appliance", # Legend title (change if needed)
+       cex = 0.8
+)
 
+# Count occurrences of each intervention
+intervention_counts <- data_purchase %>%
+  group_by(intervention) %>%
+  summarise(count = n(), .groups = "drop")
 
-palette <- brewer.pal(length(unique(data_purchase$intervention_category)),"Set1")
-intervention_colors <- setNames(palette, unique(data_purchase$intervention_category))
-
+palette <- brewer.pal(length(unique(intervention_counts$intervention)),"Set1")
+intervention_colors <- setNames(palette, intervention_counts$intervention)
 
 funnel(
   data_purchase$z_value, 
   v = data_purchase$z_variance,
   ylim = c(0, 0.3),
-  col = intervention_colors[as.factor(data_purchase$intervention_category)], 
+  col = intervention_colors[as.factor(data_purchase$intervention)], 
   legend = FALSE # We'll create the legend manually
 )
 
 # # causes error -- Tarun
-# # Create the legend manually using the legend() function
-# legend("topright", # Position of the legend
-#        legend = levels(as.factor(data_purchase$intervention_category)), # Legend labels
-#        # col = my_colors, # Legend colors
-#        # pch = 15, # Point type (change if needed)
-#        title = "Intervention" # Legend title (change if needed)
-# )
+# Create the legend manually using the legend() function
+legend("topright", # Position of the legend
+       legend = levels(as.factor(data_purchase$intervention)), # Legend labels
+        col = intervention_colors, # Legend colors
+        pch = 15, # Point type (change if needed)
+       title = "Intervention", # Legend title (change if needed)
+        cex = 0.8
+       )
 
 data_purchase$se = (data_purchase$z_variance)^(1/2)
 
@@ -360,7 +356,7 @@ outlier_cooksd6 <- data_purchase[above_threshold_rows6,]
 ### TESTING MODELS WITHOUT OUTLIERS & PUBLICATION BIAS ###
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~  information+label+loan+rebate+subsidy+0+z_variance,
-                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
 summary(meta_model5_1)
 
 meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
@@ -386,12 +382,7 @@ meta_model8_1 <-rma.mv(z_value, z_variance, mods =  ~information+label+loan+reba
                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
 summary(meta_model8_1)
 
-table(data_purchase2$information) #36
-table(data_purchase2$label) #108
-table(data_purchase2$loan) #9
-table(data_purchase2$subsidy) #31
-table(data_purchase2$rebate) #30
-
+table(data_purchase2$intervention)
 table(data_purchase2$appliance)
 
 ```
@@ -446,9 +437,9 @@ table(data_purchase2$appliance)
 ```{r forest plot}
 ### AVERAGE EFFECT PLOT ### 
 
-coef_summary5 <- coef(summary(meta_model5_1))[-6,]
+coef_summary5 <- coef(summary(meta_model5))[-6,]
 
-rownames(coef_summary5) <- c("Information \n(n = 67)","Label \n(n = 77)","Loan \n(n = 6)","Rebate \n(n = 28)","Subsidy \n(n = 27)")
+rownames(coef_summary5) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
 
 #average_estimate5 <- coef(meta_egger_1)[1]
 average_estimate5 <- mean(coef_summary5$estimate)
@@ -465,11 +456,11 @@ ggplot(coef_summary5,
   ylim(-.4, 0.4)+
   theme_bw() +
   theme(text = element_text(size = 16))
-ggsave("interventions_forest.png")
+ggsave("interventions_forest_5.png")
 
 coef_summary8 <- coef(summary(meta_model8_1))[-6,]
-rownames(coef_summary8) <- c("Information \n(n = 36)","Label \n(n = 108)","Loan \n(n = 9)","Rebate \n(n = 30)","Subsidy \n(n = 31)")
-average_estimate8 <- coef(summary(meta_model8))$estimate[1]
+rownames(coef_summary8) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
+average_estimate8 <- mean(coef_summary8$estimate)
 
 ggplot(coef_summary8,
        aes(x = row.names(coef_summary8), y = estimate)) +
@@ -484,11 +475,11 @@ ggplot(coef_summary8,
   ylim(-.4, 0.4)+
   theme_bw() +
   theme(text = element_text(size = 16))
-ggsave("interventions_forest_meta_model8_1.png", height=6, width=9)
+ggsave("revisedinterventions_forest_8_1.png", height=6, width=9)
 
 coef_summary6 <- coef(summary(meta_model6_1))[-10,]
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 5)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 55)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
-average_estimate6 <- coef(summary(meta_model8))$estimate[1]
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 60)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
+average_estimate6 <- mean(coef_summary6$estimate)
 ggplot(coef_summary6,
        aes(x = row.names(coef_summary6), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
@@ -502,7 +493,7 @@ ggplot(coef_summary6,
   ylim(-.4, 0.4)+
   theme_bw() +
   theme(text = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-ggsave("appliances_forest_meta_model6_1.png", height=6, width=9)
+ggsave("revisedint_appliances_forest_6_1.png", height=6, width=9)
 ```
 
 ```{r prepare for BMA}

@@ -10,12 +10,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
+setwd("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions/analysis")
 #setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
-load("appliances_clean_label.R")
+load("appliances_clean.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -40,13 +40,26 @@ options(scipen = 999)
 
 ```{r filter to a needed dependent variable}
 data_purchase <- data.frame()
+# exclude outliers
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('117','122')))
+# 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
+# 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
 # include WTP and purchase probability together
 data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+data_purchase <- data_purchase %>%
+  filter(!intervention == "Command & Control")
+data_purchase <- data_purchase %>%
+  filter(!appliance == "NA")
+
+
+# 152 exclude at the moment as it was published after we first ran the queries and gathered literature -- eliminated in the update
 ```
 
 ```{r}
 table(data_purchase$intervention)
+table(data_purchase$appliance)
 ```
 
 
@@ -98,7 +111,7 @@ summary(meta_model7)
 
 coef_summary5 <- coef(summary(meta_model5))
 
-rownames(coef_summary5) <- c("Information \n(n = 36)","Label \n(n = 109)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
+rownames(coef_summary5) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
 
 average_estimate5 <- mean(coef_summary5$estimate)
 ggplot(coef_summary5,
@@ -117,7 +130,7 @@ ggsave("interventions_forest.png")
 
 coef_summary6 <- coef(summary(meta_model6))
 
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 31)","Clothes Dryer \n(n = 6)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 23)","Refrigerator \n(n = 54)","TV \n(n = 12)","Washing Machine \n(n = 13)","Water Heater \n(n = 43)")
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 35)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 66)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
 
 average_estimate6 <- mean(coef_summary6$estimate)
 ggplot(coef_summary6,
@@ -279,6 +292,7 @@ meta_egger4 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance,
 summary(meta_egger4)
 ```
 
+
 ```{r identify outliers}
 # these thresholds are identified by looking at the graphs and identifying the peaks
 
@@ -342,6 +356,7 @@ meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:applia
                                random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
 summary(meta_model7)
 ```
+
 ```{r}
 data_subsidy <- data_purchase %>% filter(intervention=="Subsidy")
 data_rebate <- data_purchase %>% filter(intervention=="Rebate")
