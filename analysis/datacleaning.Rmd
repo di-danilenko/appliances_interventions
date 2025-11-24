@@ -92,6 +92,11 @@ appliances$coefficient <- ifelse(appliances$effect_direction == "decrease",
 appliances$percent_change <- ifelse(appliances$effect_direction == "decrease",
                                    -appliances$percent_change,
                                    appliances$percent_change)
+
+appliances <- appliances %>% 
+  filter (! z_value == "NA")
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('117','122')))
 ```
 
 ```{r}
@@ -148,6 +153,8 @@ appliances$lmic <- as.factor(appliances$lmic)
 ```
 
 ```{r}
+appliances$statistical_technique <- as.character(appliances$statistical_technique)
+table(appliances$statistical_technique)
 
 # clean statistical technique field
 appliances$statistical_technique <- ifelse(
@@ -155,64 +162,119 @@ appliances$statistical_technique <- ifelse(
   "Logit / Probit",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("probit", appliances$statistical_technique, ignore.case = TRUE),
   "Logit / Probit",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("binomial", appliances$statistical_technique, ignore.case = TRUE),
   "Other",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("ITT", appliances$statistical_technique, ignore.case = TRUE),
   "Logit / Probit",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("tobit", appliances$statistical_technique, ignore.case = TRUE),
   "Other",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("ANOVA", appliances$statistical_technique, ignore.case = TRUE),
   "Other",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("matching", appliances$statistical_technique, ignore.case = TRUE),
   "Other",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("2SLS", appliances$statistical_technique, ignore.case = TRUE),
   "OLS",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("OLS", appliances$statistical_technique, ignore.case = TRUE),
   "OLS",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("squares", appliances$statistical_technique, ignore.case = TRUE),
   "OLS",
   appliances$statistical_technique
 )
+
 appliances$statistical_technique <- ifelse(
   grepl("IV", appliances$statistical_technique, ignore.case = FALSE),
   "OLS",
   appliances$statistical_technique
 )
 
+appliances$statistical_technique <- ifelse(
+  grepl("linear probability model", appliances$statistical_technique, ignore.case = TRUE),
+  "OLS",
+  appliances$statistical_technique
+)
+
+appliances$statistical_technique <- ifelse(
+  grepl("Linear Probability Model", appliances$statistical_technique, ignore.case = TRUE),
+  "OLS",
+  appliances$statistical_technique
+)
+
+appliances$statistical_technique <- ifelse(appliances$statistical_technique=="hierarchical regression",
+  "Other",
+  appliances$statistical_technique
+)
+
 appliances$statistical_technique <- as.factor(appliances$statistical_technique)
 unique_statts <- unique(appliances$statistical_technique)
 # other - tobit, ANOVA, coarsened exact matching; IV + 2SLS + OLS + WL
+
+table(appliances$statistical_technique)
 ```
 
 
 ```{r}
+appliances$incentive_follow_through <- as.character(appliances$incentive_follow_through)
+table(appliances$incentive_follow_through)
+
+appliances$incentive_follow_through <- ifelse(
+  appliances$incentive_follow_through %in% c("self-reported behaviour", "self-reported behavior"),
+  "self-reported behavior",
+  appliances$incentive_follow_through
+)
+appliances$incentive_follow_through <- as.factor(appliances$incentive_follow_through)
+
+appliances$opt_in <- as.character(appliances$opt_in)
+table(appliances$opt_in)
+appliances$opt_in <- ifelse(
+  appliances$opt_in %in% c("no such option", "0"),
+  0,
+  appliances$opt_in
+)
+
+appliances$opt_in <- ifelse(
+  appliances$opt_in %in% c("opt_in", "1"),
+  1,
+  appliances$opt_in
+)
+appliances$opt_in <- as.factor(appliances$opt_in)
+
+
 appliances$experimental_setting <- ifelse(
   appliances$experimental_setting %in% c("retailer", "sales agent"),
   "retailer",
