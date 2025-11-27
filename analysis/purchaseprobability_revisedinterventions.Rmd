@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions/analysis")
+setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
 #setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
@@ -356,7 +356,7 @@ outlier_cooksd6 <- data_purchase[above_threshold_rows6,]
 ### TESTING MODELS WITHOUT OUTLIERS & PUBLICATION BIAS ###
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~  information+label+loan+rebate+subsidy+0+z_variance,
-                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase5, method = "REML")
+                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
 summary(meta_model5_1)
 
 meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
@@ -436,27 +436,27 @@ table(data_purchase2$appliance)
 
 ```{r forest plot}
 ### AVERAGE EFFECT PLOT ### 
+table(data_purchase2$appliance)
+coef_summary5_1 <- coef(summary(meta_model5_1))[-6,]
 
-coef_summary5 <- coef(summary(meta_model5))[-6,]
-
-rownames(coef_summary5) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
+rownames(coef_summary5_1) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
 
 #average_estimate5 <- coef(meta_egger_1)[1]
-average_estimate5 <- mean(coef_summary5$estimate)
-ggplot(coef_summary5,
-       aes(x = row.names(coef_summary5), y = estimate)) +
+average_estimate5_1 <- mean(coef_summary5_1$estimate)
+ggplot(coef_summary5_1,
+       aes(x = row.names(coef_summary5_1), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate5, linetype = "dashed", color = "black", size = .5) +
+  geom_hline(yintercept = average_estimate5_1, linetype = "dashed", color = "black", size = .5) +
   geom_hline(yintercept = 0, color = "gray", size = .5)+
-  annotate("text", x = 3.5, y = average_estimate5 - 0.025, label = paste("Average:", round(average_estimate5, 2)), size = 4.5) +
+  annotate("text", x = 3.5, y = average_estimate5_1 - 0.025, label = paste("Average:", round(average_estimate5_1, 2)), size = 4.5) +
   # scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   ylim(-.4, 0.4)+
   theme_bw() +
   theme(text = element_text(size = 16))
-ggsave("interventions_forest_5.png")
+ggsave("interventions_forest_5_1.png")
 
 coef_summary8 <- coef(summary(meta_model8_1))[-6,]
 rownames(coef_summary8) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
@@ -477,17 +477,17 @@ ggplot(coef_summary8,
   theme(text = element_text(size = 16))
 ggsave("revisedinterventions_forest_8_1.png", height=6, width=9)
 
-coef_summary6 <- coef(summary(meta_model6_1))[-10,]
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 60)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
-average_estimate6 <- mean(coef_summary6$estimate)
-ggplot(coef_summary6,
-       aes(x = row.names(coef_summary6), y = estimate)) +
+coef_summary6_1 <- coef(summary(meta_model6_1))[-10,]
+rownames(coef_summary6_1) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 60)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
+average_estimate6_1 <- mean(coef_summary6_1$estimate)
+ggplot(coef_summary6_1,
+       aes(x = row.names(coef_summary6_1), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate6, linetype = "dashed", color = "black", size = .5) +
+  geom_hline(yintercept = average_estimate6_1, linetype = "dashed", color = "black", size = .5) +
   geom_hline(yintercept = 0, color = "gray", size = .5)+
-  annotate("text", x = 6, y = average_estimate6 - 0.025, label = paste("Average:", round(average_estimate6, 2)), size = 4.5, vjust=1) +
+  annotate("text", x = 6, y = average_estimate6_1 - 0.025, label = paste("Average:", round(average_estimate6_1, 2)), size = 4.5, vjust=1) +
   # scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
   ylim(-.4, 0.4)+
