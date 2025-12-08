@@ -1,21 +1,21 @@
-"Coef" "beta" "SE" "tstat" "df_t" "p_t"
-"(Intercept)" "(Intercept)" -0.0731553029381878 0.0970922182776792 -0.753462061490521 43 0.455278224607727
-"z_variance" "z_variance" 2.53323583126637 0.304746155832336 8.31260963521421 43 0.000000000171798772479929
-"label" "label" -0.00530461169872212 0.0638405168917236 -0.0830916157480207 43 0.93416430498873
-"loan" "loan" -0.086095867689023 0.057474043301496 -1.49799566453648 43 0.141440052243543
-"rebate" "rebate" 0.131059495103037 0.0927897737109394 1.41243468823748 43 0.165018983221003
-"subsidy" "subsidy" 0.0773087638583333 0.0669352384764091 1.15497853773361 43 0.254477337472386
-"applianceAir-Conditioner" "applianceAir-Conditioner" -0.138808282539831 0.0667831292252414 -2.07849323848945 43 0.0436659310834631
-"applianceClothes_Dryer" "applianceClothes_Dryer" -0.183716396770083 0.10779671367692 -1.70428569205462 43 0.0955446341036448
-"applianceDishwasher" "applianceDishwasher" -0.106879640286367 0.0647481348666937 -1.65069836384347 43 0.10608651605229
-"applianceHeat_Pump" "applianceHeat_Pump" -0.269738210450813 0.0822576702885703 -3.27918611728897 43 0.00206735432017542
-"applianceLighting" "applianceLighting" 0.030886058580609 0.0562853167705092 0.548740956838531 43 0.586021423045724
-"applianceTV" "applianceTV" -0.251299258737524 0.0782846665892144 -3.21006998798595 43 0.0025111257614439
-"applianceWashing_Machine" "applianceWashing_Machine" -0.0704251286689162 0.075089321902159 -0.937884733606727 43 0.353541984272232
-"applianceWater_Heater" "applianceWater_Heater" -0.121719394752549 0.0581601571110681 -2.09283125766153 43 0.0423007676743591
-"incentive_follow_throughself-reported_behaviour" "incentive_follow_throughself-reported_behaviour" 0.0855454239953523 0.0715499184979869 1.1956047720412 43 0.238402817457174
-"incentive_follow_throughstated_preference" "incentive_follow_throughstated_preference" 0.19602681136852 0.115036806728293 1.70403557733933 43 0.0955917442968568
-"reportingBiasesprobably_yes" "reportingBiasesprobably_yes" 0.0950790371863708 0.0461460662121234 2.0603931167028 43 0.0454441761472601
-"outOfSampleBiasprobably_yes" "outOfSampleBiasprobably_yes" 0.0185135760205774 0.0370539992628662 0.499637728420068 43 0.619877302285525
-"participant_typeunspecified" "participant_typeunspecified" 0.18492694836239 0.0590386759400405 3.13230175673657 43 0.00311784681892174
-"participant_typehomeowners" "participant_typehomeowners" 0.0922707944573234 0.05414834802761 1.70403710950286 43 0.0955914556486064
+, Coef , beta , SE , tstat , df_t , p_t 
+(Intercept), (Intercept) ,-0.23 , 0.13 ,-1.84 , 48.00 , 0.07 
+z_variance, z_variance , 2.49 , 0.37 , 6.77 , 48.00 , 0.00 
+label, label , 0.01 , 0.05 , 0.16 , 48.00 , 0.87 
+loan, loan ,-0.07 , 0.05 ,-1.50 , 48.00 , 0.14 
+rebate, rebate , 0.15 , 0.09 , 1.65 , 48.00 , 0.11 
+subsidy, subsidy , 0.08 , 0.07 , 1.24 , 48.00 , 0.22 
+applianceClothes_Dryer, applianceClothes_Dryer , 0.06 , 0.07 , 0.86 , 48.00 , 0.39 
+applianceDishwasher, applianceDishwasher , 0.07 , 0.09 , 0.76 , 48.00 , 0.45 
+applianceHeat_Pump, applianceHeat_Pump ,-0.12 , 0.05 ,-2.19 , 48.00 , 0.03 
+applianceLighting, applianceLighting , 0.16 , 0.06 , 2.60 , 48.00 , 0.01 
+applianceRefrigerator, applianceRefrigerator , 0.14 , 0.07 , 2.15 , 48.00 , 0.04 
+applianceTV, applianceTV ,-0.10 , 0.06 ,-1.69 , 48.00 , 0.10 
+applianceWashing_Machine, applianceWashing_Machine , 0.09 , 0.08 , 1.10 , 48.00 , 0.28 
+applianceWater_Heater, applianceWater_Heater , 0.02 , 0.03 , 0.55 , 48.00 , 0.59 
+incentive_follow_throughself-reported_behavior, incentive_follow_throughself-reported_behavior , 0.10 , 0.06 , 1.64 , 48.00 , 0.11 
+incentive_follow_throughstated_preference, incentive_follow_throughstated_preference , 0.22 , 0.10 , 2.20 , 48.00 , 0.03 
+reportingBiasesprobably_yes, reportingBiasesprobably_yes , 0.11 , 0.04 , 2.57 , 48.00 , 0.01 
+participant_typehomeowners, participant_typehomeowners , 0.10 , 0.06 , 1.67 , 48.00 , 0.10 
+participant_typeunspecified, participant_typeunspecified , 0.16 , 0.06 , 2.62 , 48.00 , 0.01 
+outOfSampleBiasprobably_yes, outOfSampleBiasprobably_yes , 0.00 , 0.04 , 0.03 , 48.00 , 0.98 

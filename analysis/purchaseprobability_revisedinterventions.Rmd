@@ -76,14 +76,14 @@ print(length(unique(data_purchase$study_ID)))
 ### META-ANALYSIS ###
 ### PURCHASE PROBABILITY + WTP
 
-### FIXED EFFECTS ###
-meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ information+label+loan+rebate+subsidy+0)
-summary(meta_model1)
-# fixed effects by intervention
-
-meta_model2 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ appliance+0)
-summary(meta_model2)
-# fixed effects by appliance
+# ### FIXED EFFECTS ###
+# meta_model1 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ information+label+loan+rebate+subsidy+0)
+# summary(meta_model1)
+# # fixed effects by intervention
+# 
+# meta_model2 <- rma(z_value, z_variance, data = data_purchase, method = "FE", mods = ~ appliance+0)
+# summary(meta_model2)
+# # fixed effects by appliance
 
 ### RANDOM EFFECTS ###
 meta_model3 <- rma(z_value, z_variance, data = data_purchase, method = "REML", mods = ~ information+label+loan+rebate+subsidy+0)
@@ -356,11 +356,11 @@ outlier_cooksd6 <- data_purchase[above_threshold_rows6,]
 ### TESTING MODELS WITHOUT OUTLIERS & PUBLICATION BIAS ###
 
 meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~  information+label+loan+rebate+subsidy+0+z_variance,
-                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_model5_1)
 
 meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
-                       random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+                       random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
 summary(meta_model6_1)
 
 # both categories equally effective
@@ -565,10 +565,10 @@ coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, incl
 # image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
 # summary(percent)
 
-coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
-coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
-coeff <- cbind(coef, coef1, coef2)
-print(coeff)
+# coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
+# coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
+# coeff <- cbind(coef, coef1, coef2)
+# print(coeff)
 write.table(coeff,"BMA_estimates.csv")
 
 # col<- colorRampPalette(c("red", "white", "blue"))
@@ -586,7 +586,7 @@ levels(data_purchase$reportingBiases) <- gsub(" ", "_", levels(data_purchase$rep
 levels(data_purchase$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase$outOfSampleBias))
 levels(data_purchase$study_design) <- gsub(" ", "_", levels(data_purchase$study_design))
 
-data_purchase$participant_type <- relevel(data_purchase$participant_type, ref = "homeowners")
+data_purchase$participant_type <- relevel(data_purchase$participant_type, ref = "residents")
 data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
 
 levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
