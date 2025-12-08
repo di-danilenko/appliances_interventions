@@ -1,21 +1,21 @@
-, Coef , beta , SE , tstat , df_t , p_t 
-(Intercept), (Intercept) ,-0.23 , 0.13 ,-1.84 , 48.00 , 0.07 
-z_variance, z_variance , 2.49 , 0.37 , 6.77 , 48.00 , 0.00 
-label, label , 0.01 , 0.05 , 0.16 , 48.00 , 0.87 
-loan, loan ,-0.07 , 0.05 ,-1.50 , 48.00 , 0.14 
-rebate, rebate , 0.15 , 0.09 , 1.65 , 48.00 , 0.11 
-subsidy, subsidy , 0.08 , 0.07 , 1.24 , 48.00 , 0.22 
-applianceClothes_Dryer, applianceClothes_Dryer , 0.06 , 0.07 , 0.86 , 48.00 , 0.39 
-applianceDishwasher, applianceDishwasher , 0.07 , 0.09 , 0.76 , 48.00 , 0.45 
-applianceHeat_Pump, applianceHeat_Pump ,-0.12 , 0.05 ,-2.19 , 48.00 , 0.03 
-applianceLighting, applianceLighting , 0.16 , 0.06 , 2.60 , 48.00 , 0.01 
-applianceRefrigerator, applianceRefrigerator , 0.14 , 0.07 , 2.15 , 48.00 , 0.04 
-applianceTV, applianceTV ,-0.10 , 0.06 ,-1.69 , 48.00 , 0.10 
-applianceWashing_Machine, applianceWashing_Machine , 0.09 , 0.08 , 1.10 , 48.00 , 0.28 
-applianceWater_Heater, applianceWater_Heater , 0.02 , 0.03 , 0.55 , 48.00 , 0.59 
-incentive_follow_throughself-reported_behavior, incentive_follow_throughself-reported_behavior , 0.10 , 0.06 , 1.64 , 48.00 , 0.11 
-incentive_follow_throughstated_preference, incentive_follow_throughstated_preference , 0.22 , 0.10 , 2.20 , 48.00 , 0.03 
-reportingBiasesprobably_yes, reportingBiasesprobably_yes , 0.11 , 0.04 , 2.57 , 48.00 , 0.01 
-participant_typehomeowners, participant_typehomeowners , 0.10 , 0.06 , 1.67 , 48.00 , 0.10 
-participant_typeunspecified, participant_typeunspecified , 0.16 , 0.06 , 2.62 , 48.00 , 0.01 
-outOfSampleBiasprobably_yes, outOfSampleBiasprobably_yes , 0.00 , 0.04 , 0.03 , 48.00 , 0.98 
+"Coef" "beta" "SE" "tstat" "df_t" "p_t"
+"(Intercept)" "(Intercept)" -0.0915558650690969 0.093859846077325 -0.975452964131967 48 0.334226200288662
+"z_variance" "z_variance" 2.48688915468736 0.367160322236531 6.77330583963609 48 0.0000000163741979542043
+"label" "label" 0.00810755395900598 0.0509579865310354 0.159102714038126 48 0.874255516969096
+"loan" "loan" -0.071316269558089 0.047493625032538 -1.50159667764316 48 0.139751649411232
+"rebate" "rebate" 0.152174421601005 0.0923373863726513 1.64802608757915 48 0.105878739757208
+"subsidy" "subsidy" 0.0810188147668081 0.0653781897268878 1.23923307000787 48 0.221284482386338
+"appliance1Air-Conditioner" "appliance1Air-Conditioner" -0.140402896776163 0.0653959101469732 -2.14696754675662 48 0.0368764239898607
+"appliance1Clothes_Dryer" "appliance1Clothes_Dryer" -0.077494122787769 0.0465041862174033 -1.66639025625543 48 0.102149204649684
+"appliance1Dishwasher" "appliance1Dishwasher" -0.0707671738143539 0.0529505731874963 -1.33647606728957 48 0.187694669177718
+"appliance1Heat_Pump" "appliance1Heat_Pump" -0.259496381572666 0.0811896481831467 -3.1961757118013 48 0.0024638523666362
+"appliance1Lighting" "appliance1Lighting" 0.020499132596193 0.0566818750442131 0.361652337368925 48 0.719199034149181
+"appliance1TV" "appliance1TV" -0.241541260307531 0.0791400763087392 -3.0520726232969 48 0.00369778622849883
+"appliance1Washing_Machine" "appliance1Washing_Machine" -0.0537259094205085 0.0599680511802173 -0.89590887752964 48 0.374772580511855
+"appliance1Water_Heater" "appliance1Water_Heater" -0.122048781167883 0.057053538069678 -2.13919741522125 48 0.0375338180713262
+"incentive_follow_throughself-reported_behavior" "incentive_follow_throughself-reported_behavior" 0.100631050171035 0.0614293614270899 1.63815881906039 48 0.107928227531089
+"incentive_follow_throughstated_preference" "incentive_follow_throughstated_preference" 0.215739837718788 0.0982578029768151 2.19565094254849 48 0.0329832193290581
+"reportingBiasesprobably_yes" "reportingBiasesprobably_yes" 0.111792721583098 0.0434204338600802 2.57465694477728 48 0.0131732177124193
+"participant_type1homeowners" "participant_type1homeowners" 0.095389183932262 0.0569523212715803 1.674895452942 48 0.100458804351506
+"participant_type1unspecified" "participant_type1unspecified" 0.161635243439889 0.0615874495962297 2.62448347024561 48 0.0116034263134179
+"outOfSampleBiasprobably_yes" "outOfSampleBiasprobably_yes" 0.00107604532966719 0.0378966811113184 0.0283941838206464 48 0.977465491239936

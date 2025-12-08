@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r setup, include=FALSE}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
-#setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
+# setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
+setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
@@ -589,13 +589,14 @@ levels(data_purchase$reportingBiases) <- gsub(" ", "_", levels(data_purchase$rep
 levels(data_purchase$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase$outOfSampleBias))
 levels(data_purchase$study_design) <- gsub(" ", "_", levels(data_purchase$study_design))
 
-data_purchase$participant_type <- relevel(data_purchase$participant_type, ref = "residents")
-data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
+data_purchase$participant_type1 <- relevel(data_purchase$participant_type, ref = "residents")
+# data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
+data_purchase$appliance1 <- relevel(data_purchase$appliance, ref = "Refrigerator")
 
-levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
+# levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
 
-topmod<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance+ incentive_follow_through+reportingBiases+
-              participant_type+outOfSampleBias#+statistical_technique
+topmod<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incentive_follow_through+reportingBiases+
+              participant_type1+outOfSampleBias#+statistical_technique
             
             ,data = data_purchase)
 coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase$study_ID, test = "naive-t")
