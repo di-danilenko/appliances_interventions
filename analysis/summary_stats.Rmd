@@ -25,7 +25,7 @@ library(shiny)
 ```{r open dataset}
 setwd("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions")
 #setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
-load("analysis/appliances_clean.R")
+load("analysis/appliances_clean_label.R")
 ```
 
 ```{r define variables}

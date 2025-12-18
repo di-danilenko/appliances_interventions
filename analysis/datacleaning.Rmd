@@ -96,7 +96,7 @@ appliances$percent_change <- ifelse(appliances$effect_direction == "decrease",
 appliances <- appliances %>% 
   filter (! z_value == "NA")
 appliances <- appliances %>%
-  filter(!(study_ID %in% c('117','122')))
+  filter(!(study_ID %in% c('117','122','138')))
 ```
 
 ```{r}
@@ -338,6 +338,7 @@ appliances_multi <- appliances %>% filter(multi_intervention > 1)
 
 # there were no experiments on choice architecture, but some studies on command & control interventions, which were recorded in this column initially
 # this ordering overwrites multi-interventions (i.e. label + information is overwritten with label)
+appliances$intervention <- as.character(appliances$intervention)
 
 appliances$intervention <- with(appliances, case_when(
   label == 1 ~ "Label",
@@ -350,6 +351,20 @@ appliances$intervention <- with(appliances, case_when(
   choice_architecture == 1 ~ "Command & Control",
   TRUE ~ NA_character_
 ))
+
+# re-categorise interventions
+appliances$subsidy <- case_when(
+  appliances$tax_credit == 1 ~ 1,
+  TRUE ~ appliances$subsidy)
+
+appliances$information <- case_when(
+  appliances$feedback == 1 ~ 1,
+  TRUE ~ appliances$information)
+
+appliances$information <- case_when(
+  appliances$information == 1 & appliances$label == 1 ~ 0,
+  TRUE ~ appliances$information)
+
 appliances$intervention <- as.factor(appliances$intervention)
 
 appliances$appliance <- with(appliances, case_when(
@@ -426,13 +441,27 @@ table(appliances$intervention)
 
 print(length(unique(appliances$study_ID)))
 ```
+```{r}
+
+unique_studies <- unique(appliances[, c("authors", "year_publication", "doc_title")])
+print(nrow(unique_studies))
+print(unique_studies)       
+write_csv(unique_studies, "unique_studies_appliances.csv")
+
+unique_studies_purchase <- unique(purchase[, c("authors", "year_publication", "doc_title")])
+print(nrow(unique_studies_purchase))
+print(unique_studies_purchase)       
+write_csv(unique_studies_purchase, "unique_studies_appliances_purchase.csv")
+
+```
+
 
 
 
 ```{r}
 # write the clean dataset into an R database
 # before exclusion of outliers, before re-categorising the intervention
-save(appliances, file = "appliances_clean.R")
+save(appliances, file = "appliances_clean_label.R")
 ```
 
 
