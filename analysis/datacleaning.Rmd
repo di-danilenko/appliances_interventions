@@ -97,6 +97,9 @@ appliances <- appliances %>%
   filter (! z_value == "NA")
 appliances <- appliances %>%
   filter(!(study_ID %in% c('117','122','138')))
+# 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
+# 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
+# 138 exclude Ridge (1988) as the intervention is not relevant
 ```
 
 ```{r}
