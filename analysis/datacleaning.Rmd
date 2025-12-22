@@ -96,10 +96,13 @@ appliances$percent_change <- ifelse(appliances$effect_direction == "decrease",
 appliances <- appliances %>% 
   filter (! z_value == "NA")
 appliances <- appliances %>%
-  filter(!(study_ID %in% c('117','122','138')))
+  filter(!(study_ID %in% c('117','122','138','518')))
+
 # 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
 # 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
 # 138 exclude Ridge (1988) as the intervention is not relevant
+# 118 Ward creates a duplicate -- correct the spelling 
+# 518 exclude Weigert 2021
 ```
 
 ```{r}
@@ -152,7 +155,6 @@ appliances$oecd <- ifelse(appliances$country %in% oecd_countries, "OECD country"
 appliances$lmic <- ifelse(appliances$country %in% lmic_countries, "LMIC", "non-LMIC")
 appliances$oecd <- as.factor(appliances$oecd)
 appliances$lmic <- as.factor(appliances$lmic)
-
 ```
 
 ```{r}
@@ -341,7 +343,7 @@ appliances_multi <- appliances %>% filter(multi_intervention > 1)
 
 # there were no experiments on choice architecture, but some studies on command & control interventions, which were recorded in this column initially
 # this ordering overwrites multi-interventions (i.e. label + information is overwritten with label)
-appliances$intervention <- as.character(appliances$intervention)
+#appliances$intervention <- as.character(appliances$intervention)
 
 appliances$intervention <- with(appliances, case_when(
   label == 1 ~ "Label",
@@ -408,7 +410,7 @@ appliances <- appliances %>%
 
 ```{r}
 purchase <- appliances %>% 
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance"))
 
 table(purchase$intervention)
 # 64 information pre-processing
