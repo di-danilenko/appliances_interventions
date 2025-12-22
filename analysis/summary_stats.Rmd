@@ -23,14 +23,14 @@ library(shiny)
 ```
 
 ```{r open dataset}
-setwd("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions")
+setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
 #setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
 load("analysis/appliances_clean_label.R")
 ```
 
 ```{r define variables}
 ################DESCRIPTIVE STATISTICS##################################
-outputPath <- c("C:/Users/dand/Desktop/Desktop/GitHub/appliances_interventions")
+outputPath <- c("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
 
 short_summ    <- c("appliance",
                    "intervention",
@@ -93,11 +93,11 @@ appliances[sumvarsNum] <- lapply(appliances[sumvarsNum], as.numeric)
 # dfinc <- appliances
 # exclude outliers
 appliances <- appliances %>%
-  filter(!(study_ID %in% c('117','122')))
+  filter(!(study_ID %in% c('117','122','138','518')))
 data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>%
-  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "WTP for efficient appliance"))
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance"))
 
 dfinc <- data_purchase
 ```

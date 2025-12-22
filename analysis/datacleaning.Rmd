@@ -458,6 +458,8 @@ print(nrow(unique_studies_purchase))
 print(unique_studies_purchase)       
 write_csv(unique_studies_purchase, "unique_studies_appliances_purchase.csv")
 
+appliances$dep_variable_purchase_category[appliances$study_ID == "504"] <- "purchase (probability) of efficient appliance"
+
 ```
 
 

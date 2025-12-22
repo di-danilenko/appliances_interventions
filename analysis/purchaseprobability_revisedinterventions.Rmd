@@ -141,7 +141,7 @@ ggsave("revisedinterventions_forest_5.png")
 
 table(data_purchase$appliance)
 coef_summary6 <- coef(summary(meta_model6))
-rownames(coef_summary6) <- c("Air-Conditioner \n(n = 35)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 66)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
+rownames(coef_summary6) <- c("Air-Conditioner \n(n = 35)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 21)","Lighting \n(n = 34)","Refrigerator \n(n = 80)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
 average_estimate6 <- mean(coef_summary6$estimate)
 
 ggplot(coef_summary6,
@@ -462,7 +462,7 @@ ggplot(coef_summary5_1,
 ggsave("interventions_forest_5_1_avME_1.png", height=6, width=9)
 
 coef_summary8 <- coef(summary(meta_model8_1))[-6,]
-rownames(coef_summary8) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
+rownames(coef_summary8) <- c("Information \n(n = 53)","Label \n(n = 135)","Loan \n(n = 9)","Rebate \n(n = 30)","Subsidy \n(n = 30)")
 average_estimate8 <- mean(coef_summary8$estimate)
 
 ggplot(coef_summary8,
@@ -481,7 +481,7 @@ ggplot(coef_summary8,
 ggsave("revisedinterventions_forest_8_1_avME_1.png", height=6, width=9)
 
 coef_summary6_1 <- coef(summary(meta_model6_1))[-10,]
-rownames(coef_summary6_1) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 18)","Lighting \n(n = 34)","Refrigerator \n(n = 60)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
+rownames(coef_summary6_1) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 21)","Lighting \n(n = 34)","Refrigerator \n(n = 72)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
 average_estimate6_1 <- mean(coef_summary6_1$estimate)
 ggplot(coef_summary6_1,
        aes(x = row.names(coef_summary6_1), y = estimate)) +
