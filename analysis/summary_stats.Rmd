@@ -23,8 +23,8 @@ library(shiny)
 ```
 
 ```{r open dataset}
-setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
-#setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
+# setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
+setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
 load("analysis/appliances_clean_label.R")
 ```
 
@@ -90,29 +90,46 @@ appliances[sumvarsNum] <- lapply(appliances[sumvarsNum], as.numeric)
 ```
 
 ```{r define data subset}
-# dfinc <- appliances
+
 # exclude outliers
 appliances <- appliances %>%
   filter(!(study_ID %in% c('117','122','138','518')))
+# # 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
+# # 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
+
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('118') & coder == "DD")) #Study double coded and results for both reviewers included by mistake
+
+appliances <- appliances %>%
+  filter(!(sr_no %in% c("1538", "1539")))
+#Effect sizes wrongly coded for Wang 2023 for labeling effectiveness. Have been deleted as they are not main estimates anyway
+
 data_purchase <- data.frame()
 # filter to a needed dependent variable
 data_purchase <- appliances %>%
   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance"))
 
-dfinc <- data_purchase
+data_usage <- data.frame()
+# filter to a needed dependent variable
+data_usage <- appliances %>%
+  filter((study_type == 1) & !(dep_variable_purchase_category %in% c("market share of efficient appliance","purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance")))
+
+
+print(length(unique(appliances$study_ID)))
+print(length(unique(appliances$sr_no)))
+
+print(length(unique(data_purchase$study_ID)))
+print(length(unique(data_purchase$sr_no)))
+
+print(length(unique(data_usage$study_ID)))
+print(length(unique(data_usage$sr_no)))
+
 ```
 
 ```{r summary stats}
 
-# for(col in names(select(dfinc,all_of(sumVarsFactor)))) {
-#   freq_table <- freq(dfinc[[col]], style = "rmarkdown", cumul=FALSE, report.nas = FALSE)
-#   print(freq_table)
-# }
-# 
-# freq(select(dfinc, all_of(sumvarsNum)), cumul = FALSE)
-
 # change output file name based on the data
-dfinc %>% group_by() %>%
+data_purchase %>% group_by() %>%
   select(all_of(sumVars)) %>% 
   dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
   print(file = "summarystatistics_purchase.html")
