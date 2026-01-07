@@ -102,7 +102,7 @@ appliances <- appliances %>%
 
 appliances <- appliances %>%
   filter(!(sr_no %in% c("1538", "1539")))
-#Effect sizes wrongly coded for Wang 2023 for labeling effectiveness. Have been deleted as they are not main estimates anyway
+#Effect sizes wrongly coded for Wang 2023 for labeling effectiveness. Should not have been coded in the first place. 
 
 data_purchase <- data.frame()
 # filter to a needed dependent variable
@@ -112,17 +112,12 @@ data_purchase <- appliances %>%
 data_usage <- data.frame()
 # filter to a needed dependent variable
 data_usage <- appliances %>%
-  filter((study_type == 1) & !(dep_variable_purchase_category %in% c("market share of efficient appliance","purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance")))
+  filter((study_type == 1) & !(dep_variable_purchase_category %in% c("market share of efficient appliance","purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance") & !is.na(dep_variable_purchase_category)))
 
-
-print(length(unique(appliances$study_ID)))
-print(length(unique(appliances$sr_no)))
-
-print(length(unique(data_purchase$study_ID)))
-print(length(unique(data_purchase$sr_no)))
-
-print(length(unique(data_usage$study_ID)))
-print(length(unique(data_usage$sr_no)))
+data_market <- data.frame()
+# filter to a needed dependent variable
+data_market <- appliances %>%
+  filter(dep_variable_purchase_category %in% c("market share of efficient appliance"))
 
 ```
 
@@ -134,6 +129,16 @@ data_purchase %>% group_by() %>%
   dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
   print(file = "summarystatistics_purchase.html")
 rmarkdown::render("summarystatistics_purchase.html", output_file = "summarystatistics_purchase.doc")
+
+data_usage %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_data_usage.html")
+
+data_market %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_data_market.html")
 
 # change output file name based on the data
 appliances %>% group_by() %>%
