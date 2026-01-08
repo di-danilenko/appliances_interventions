@@ -15,7 +15,7 @@ setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
-load("appliances_clean_label.R")
+# load("appliances_clean_label.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -273,6 +273,11 @@ legend("topright", # Position of the legend
 
 data_purchase$se = (data_purchase$z_variance)^(1/2)
 
+# Model without publication bias correction
+meta_model0 <-rma.mv(z_value, z_variance, 
+                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_model0, digits = 2)
+
 # Egger's test
 meta_egger <-rma.mv(z_value, z_variance, mods =  ~ se, 
                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
@@ -373,76 +378,6 @@ table(data_purchase2$intervention)
 table(data_purchase2$appliance)
 
 ```
-```{r sensitivity check for R&R}
-
-meta_model5_3 <-rma.mv(z_value, z_variance, mods =  ~z_variance + study_design,
-                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_model5_3, digits = 2)
-
-# Make sure study_design is a factor
-data_purchase$study_design <- factor(
-  data_purchase$study_design,
-  levels = c("control_&_treatment", 
-             "DID", 
-             "pre_and_post", 
-             "quasi-experimental", 
-             "simulated_counterfactual")
-)
-
-study_designs <- levels(data_purchase$study_design)
-
-results <- list()
-
-for (design in study_designs) {
-  cat("\nProcessing study_design =", design, "\n")
-  
-  subset_data <- droplevels(subset(data_purchase, study_design == design))
-  
-  if (nrow(subset_data) > 1) {
-    meta_model <- tryCatch({
-      rma.mv(z_value, z_variance,
-             mods = ~ z_variance,
-             random = ~ as.factor(sr_no) | as.factor(study_ID),
-             data = subset_data,
-             method = "REML")
-    }, error = function(e) {
-      cat("Error for", design, ":", e$message, "\n")
-      return(NULL)
-    })
-    
-    if (!is.null(meta_model)) {
-      # Extract coefficient table
-      coef_table <- coef(summary(meta_model, digits = 2))
-      coef_df <- data.frame(
-        study_design = design,
-        k            = summary(meta_model)$k,
-        estimate     = coef_table[, "estimate"],
-        se           = coef_table[, "se"],
-        zval         = coef_table[, "zval"],
-        pval         = coef_table[, "pval"],
-        ci.lb        = coef_table[, "ci.lb"],
-        ci.ub        = coef_table[, "ci.ub"]
-      )
-      results[[design]] <- coef_df
-    }
-  }
-}
-
-# Combine all results into one tidy table
-final_results <- bind_rows(results)
-
-
-# Round numeric columns to 2 decimals
-final_results <- final_results %>%
-  mutate(across(where(is.numeric), ~ round(.x, 2)))
-
-print(final_results)
-write.table(final_results,"Study_designsensitivity.csv")
-
-
-
-```
-
 
 ```{r test models without outliers - continued}
 
@@ -533,6 +468,130 @@ ggplot(coef_summary6_2,
   theme_bw() +
   theme(text = element_text(size = 14)) + theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1))
 ggsave("revisedint_appliances_forest_6_1_avME_1.png", height=6, width=9)
+```
+
+```{r sensitivity check for R&R}
+
+meta_model5_3 <-rma.mv(z_value, z_variance, mods =  ~z_variance + study_design,
+                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+summary(meta_model5_3, digits = 2)
+
+# Make sure study_design is a factor
+# data_purchase2$study_design <- factor(
+#   data_purchase2$study_design,
+#   levels = c("control_&_treatment", 
+#              "DID", 
+#              "pre_and_post", 
+#              "quasi-experimental", 
+#              "simulated_counterfactual")
+# )
+
+study_designs <- levels(data_purchase2$study_design)
+
+results <- list()
+
+for (design in study_designs) {
+  cat("\nProcessing study_design =", design, "\n")
+  
+  subset_data <- droplevels(subset(data_purchase2, study_design == design))
+  
+  if (nrow(subset_data) > 1) {
+    meta_model <- tryCatch({
+      rma.mv(z_value, z_variance,
+             mods = ~ z_variance,
+             random = ~ as.factor(sr_no) | as.factor(study_ID),
+             data = subset_data,
+             method = "REML")
+    }, error = function(e) {
+      cat("Error for", design, ":", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(meta_model)) {
+      # Extract coefficient table
+      coef_table <- coef(summary(meta_model, digits = 2))
+      coef_df <- data.frame(
+        study_design = design,
+        k            = summary(meta_model)$k,
+        estimate     = coef_table[, "estimate"],
+        se           = coef_table[, "se"],
+        zval         = coef_table[, "zval"],
+        pval         = coef_table[, "pval"],
+        ci.lb        = coef_table[, "ci.lb"],
+        ci.ub        = coef_table[, "ci.ub"]
+      )
+      results[[design]] <- coef_df
+    }
+  }
+}
+
+# Combine all results into one tidy table
+final_results <- bind_rows(results)
+
+
+# Round numeric columns to 2 decimals
+final_results <- final_results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+print(final_results)
+write.table(final_results,"Study_designsensitivity.csv")
+
+
+
+```
+
+```{r sensitivity check for R&R}
+
+# Fit the overall model including reportingBiases
+bias_levels <- levels(data_purchase2$reportingBiases)
+
+results <- list()
+
+for (bias in bias_levels) {
+  cat("\nProcessing reportingBiases =", bias, "\n")
+  
+  subset_data <- droplevels(subset(data_purchase2, reportingBiases == bias))
+  
+  if (nrow(subset_data) > 1) {
+    meta_model <- tryCatch({
+      rma.mv(z_value, z_variance,
+             mods = ~ z_variance,
+             random = ~ as.factor(sr_no) | as.factor(study_ID),
+             data = subset_data,
+             method = "REML")
+    }, error = function(e) {
+      cat("Error for", bias, ":", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(meta_model)) {
+      # Extract coefficient table
+      coef_table <- coef(summary(meta_model, digits = 2))
+      coef_df <- data.frame(
+        reportingBiases = bias,
+        k               = summary(meta_model)$k,
+        estimate        = coef_table[, "estimate"],
+        se              = coef_table[, "se"],
+        zval            = coef_table[, "zval"],
+        pval            = coef_table[, "pval"],
+        ci.lb           = coef_table[, "ci.lb"],
+        ci.ub           = coef_table[, "ci.ub"]
+      )
+      results[[bias]] <- coef_df
+    }
+  }
+}
+
+# Combine all results into one tidy table
+final_results <- bind_rows(results)
+
+# Round numeric columns to 2 decimals
+final_results <- final_results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+print(final_results)
+write.table(final_results, "ReportingBiasesSensitivity.csv")
+
 ```
 
 ```{r prepare for BMA}
@@ -628,7 +687,7 @@ levels(data_purchase$reportingBiases) <- gsub(" ", "_", levels(data_purchase$rep
 levels(data_purchase$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase$outOfSampleBias))
 levels(data_purchase$study_design) <- gsub(" ", "_", levels(data_purchase$study_design))
 
-data_purchase$participant_type1 <- relevel(data_purchase$participant_type, ref = "residents")
+data_purchase$participant_type1 <- relevel(data_purchase$participant_type, ref = "unspecified")
 # data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
 data_purchase$appliance1 <- relevel(data_purchase$appliance, ref = "Refrigerator")
 
@@ -636,10 +695,23 @@ data_purchase$publication_year_dummy <- ifelse(data_purchase$year_publication >=
 # levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
 
 topmod<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incentive_follow_through+reportingBiases+
-              participant_type1+outOfSampleBias
+              participant_type1+outOfSampleBias 
             
             ,data = data_purchase)
-coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase$study_ID, test = "naive-t")
+
+plot(topmod, which = 4)
+cooksD <- cooks.distance(topmod)
+threshold <- 4/length(cooksD)
+influential_obs <- which(cooksD > threshold)
+data_purchase3 <- data_purchase[-influential_obs, ]
+
+
+topmod1<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incentive_follow_through+reportingBiases+
+              participant_type1+outOfSampleBias
+            
+            ,data = data_purchase3)
+
+coeff_top<- coef_test(topmod1, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t")
 coeff_top
 
 write.table(coeff_top,"Fcheck.csv")
