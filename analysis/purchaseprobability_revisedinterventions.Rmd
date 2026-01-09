@@ -472,9 +472,9 @@ ggsave("revisedint_appliances_forest_6_1_avME_1.png", height=6, width=9)
 
 ```{r sensitivity check for R&R}
 
-meta_model5_3 <-rma.mv(z_value, z_variance, mods =  ~z_variance + study_design,
-                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
-summary(meta_model5_3, digits = 2)
+# meta_model5_3 <-rma.mv(z_value, z_variance, mods =  ~z_variance + study_design,
+#                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+# summary(meta_model5_3, digits = 2)
 
 # Make sure study_design is a factor
 # data_purchase2$study_design <- factor(
@@ -539,6 +539,7 @@ write.table(final_results,"Study_designsensitivity.csv")
 
 
 ```
+
 
 ```{r sensitivity check for R&R}
 
