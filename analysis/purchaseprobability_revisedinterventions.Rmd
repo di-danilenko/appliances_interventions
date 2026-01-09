@@ -498,7 +498,7 @@ for (design in study_designs) {
   if (nrow(subset_data) > 1) {
     meta_model <- tryCatch({
       rma.mv(z_value, z_variance,
-             mods = ~ z_variance,
+             # mods = ~ z_variance,
              random = ~ as.factor(sr_no) | as.factor(study_ID),
              data = subset_data,
              method = "REML")
@@ -555,7 +555,7 @@ for (bias in bias_levels) {
   if (nrow(subset_data) > 1) {
     meta_model <- tryCatch({
       rma.mv(z_value, z_variance,
-             mods = ~ z_variance,
+             # mods = ~ z_variance,
              random = ~ as.factor(sr_no) | as.factor(study_ID),
              data = subset_data,
              method = "REML")
@@ -591,6 +591,61 @@ final_results <- final_results %>%
 
 print(final_results)
 write.table(final_results, "ReportingBiasesSensitivity.csv")
+
+```
+
+
+```{r sensitivity check for R&R}
+
+# Fit the overall model including incentivefollowthrough
+incentive_levels <- levels(data_purchase2$incentive_follow_through)
+
+results <- list()
+
+for (incentive in incentive_levels) {
+  cat("\nProcessing incentivefollowthrough =", incentive, "\n")
+  
+  subset_data <- droplevels(subset(data_purchase2, incentive_follow_through == incentive))
+  
+  if (nrow(subset_data) > 1) {
+    meta_model <- tryCatch({
+      rma.mv(z_value, z_variance,
+             # mods = ~ z_variance,
+             random = ~ as.factor(sr_no) | as.factor(study_ID),
+             data = subset_data,
+             method = "REML")
+    }, error = function(e) {
+      cat("Error for", incentive, ":", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(meta_model)) {
+      # Extract coefficient table
+      coef_table <- coef(summary(meta_model, digits = 2))
+      coef_df <- data.frame(
+        incentive_follow_through = incentive,
+        k               = summary(meta_model)$k,
+        estimate        = coef_table[, "estimate"],
+        se              = coef_table[, "se"],
+        zval            = coef_table[, "zval"],
+        pval            = coef_table[, "pval"],
+        ci.lb           = coef_table[, "ci.lb"],
+        ci.ub           = coef_table[, "ci.ub"]
+      )
+      results[[incentive]] <- coef_df
+    }
+  }
+}
+
+# Combine all results into one tidy table
+final_results <- bind_rows(results)
+
+# Round numeric columns to 2 decimals
+final_results <- final_results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+print(final_results)
+write.table(final_results, "IncentiveFollowthroughSensitivity.csv")
 
 ```
 

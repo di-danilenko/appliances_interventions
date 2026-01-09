@@ -1,0 +1,4 @@
+"incentive_follow_through" "k" "estimate" "se" "zval" "pval" "ci.lb" "ci.ub"
+"1" "revealed_preference" 87 0.08 0.03 3.17 0 0.03 0.13
+"2" "self-reported_behavior" 46 0.08 0.03 3.14 0 0.03 0.13
+"3" "stated_preference" 121 0.11 0.02 4.49 0 0.06 0.16
