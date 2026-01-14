@@ -747,7 +747,11 @@ data_purchase$participant_type1 <- relevel(data_purchase$participant_type, ref =
 # data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
 data_purchase$appliance1 <- relevel(data_purchase$appliance, ref = "Refrigerator")
 
-data_purchase$publication_year_dummy <- ifelse(data_purchase$year_publication >= 2000, 1, 0) 
+data_purchase$year_data_study1 <- ifelse(data_purchase$year_data_study >= 2000, 1, 0)
+data_purchase$decade <- floor(data_purchase$year_data_study / 10) * 10
+data_purchase$decade <- as.factor(data_purchase$decade)
+data_purchase$decade <- relevel(data_purchase$decade, ref = "2000")
+
 # levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
 
 topmod<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incentive_follow_through+reportingBiases+
@@ -767,8 +771,12 @@ topmod1<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incenti
             
             ,data = data_purchase3)
 
-coeff_top<- coef_test(topmod1, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t")
-coeff_top
+coeff_top<- coef_test(topmod1, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t", round = 2)
+results_rounded <- data.frame(lapply(coeff_top, function(x) 
+                                     if(is.numeric(x)) round(x, 2) else x))
+
+print(results_rounded)
+
 
 write.table(coeff_top,"Fcheck.csv")
 
