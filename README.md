@@ -1,0 +1,1 @@
+This repository contains the data collected and the code used for analysis for the research paper titled "Meta-analysis on comparative impact of behavioral, informational, and economic interventions on household energy-efficient appliance adoption". 
