@@ -1,0 +1,150 @@
+---
+title: "summary_stats"
+author: "D. Danilenko"
+date: "2023-05-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load libraries}
+library(tidyverse)
+library(ggplot2)
+library(haven)
+library(writexl)
+library(openxlsx)
+library(dplyr)
+library(stringr)
+library(readxl)
+library(summarytools)
+library(shiny)
+```
+
+```{r open dataset}
+# setwd("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions")
+setwd("C:/Users/tarun/Documents/GitHub/appliances_interventions/")
+load("analysis/appliances_clean_label.R")
+```
+
+```{r define variables}
+################DESCRIPTIVE STATISTICS##################################
+outputPath <- c("C:/Users/dand/OneDrive/Desktop/GitHub/appliances_interventions/analysis")
+
+short_summ    <- c("appliance",
+                   "intervention",
+                   "continent",
+                   "statistical_technique",
+                   "study_design",
+                   "incentive_follow_through",
+                   "experimental_setting",
+                   "participant_type"
+                   )
+
+sumVarsCatego <- c(
+  "aware_of_study",
+  "opt_in",
+  "randomisation_dummy",
+  "outOfSampleBias",
+  "reportingBiases",
+  "year_publication",
+  "year_data_study",
+  "controls_energy_prices",
+  "controls_environmental_attitudes",
+  "controls_demographics")
+
+# for these factor variables we want normal summary stats
+sumVarsFactor <- c(#"study_ID",
+                   "appliance",
+                   "intervention",
+                   "continent",
+                   "statistical_technique",
+                   "study_design",
+                   "incentive_follow_through",
+                   "experimental_setting",
+                   "participant_type",
+                   "aware_of_study",
+                   "opt_in",
+                   "randomisation_dummy",
+                   "outOfSampleBias",
+                   "reportingBiases",
+                   "controls_energy_prices",
+                   "controls_environmental_attitudes",
+                   "controls_demographics"
+  )
+
+# for these numeric variables we want normal summary stats
+sumvarsNum <- c("year_publication",
+                "year_data_study",
+                "percent_change",
+                "total_sample_size",
+                "z_value",
+                "z_variance")
+
+# for study ID we only want to see the count of unique values
+sumVars <- c(short_summ,sumVarsCatego, sumvarsNum)
+
+appliances[sumVarsFactor] <- lapply(appliances[sumVarsFactor], factor)
+appliances[sumvarsNum] <- lapply(appliances[sumvarsNum], as.numeric)
+```
+
+```{r define data subset}
+
+# exclude outliers
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('117','122','138','518')))
+# # 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
+# # 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
+
+appliances <- appliances %>%
+  filter(!(study_ID %in% c('118') & coder == "DD")) #Study double coded and results for both reviewers included by mistake
+
+appliances <- appliances %>%
+  filter(!(sr_no %in% c("1538", "1539")))
+#Effect sizes wrongly coded for Wang 2023 for labeling effectiveness. Should not have been coded in the first place. 
+
+data_purchase <- data.frame()
+# filter to a needed dependent variable
+data_purchase <- appliances %>%
+  filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance"))
+
+data_usage <- data.frame()
+# filter to a needed dependent variable
+data_usage <- appliances %>%
+  filter((study_type == 1) & !(dep_variable_purchase_category %in% c("market share of efficient appliance","purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance") & !is.na(dep_variable_purchase_category)))
+
+data_market <- data.frame()
+# filter to a needed dependent variable
+data_market <- appliances %>%
+  filter(dep_variable_purchase_category %in% c("market share of efficient appliance"))
+
+```
+
+```{r summary stats}
+
+# change output file name based on the data
+data_purchase %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_purchase.html")
+rmarkdown::render("summarystatistics_purchase.html", output_file = "summarystatistics_purchase.doc")
+
+data_usage %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_data_usage.html")
+
+data_market %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_data_market.html")
+
+# change output file name based on the data
+appliances %>% group_by() %>%
+  select(all_of(sumVars)) %>% 
+  dfSummary(graph.col = T, style = "grid", na.col = FALSE) %>%
+  print(file = "summarystatistics_all.html")
+rmarkdown::render("summarystatistics_all.html", output_file = "summarystatistics_all.doc")
+
+```

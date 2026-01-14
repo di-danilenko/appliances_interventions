@@ -15,7 +15,7 @@ setwd("/Users/tarun/Documents/GitHub/appliances_interventions")
 ```
 
 ```{r}
-load("appliances_clean_label.R")
+# load("appliances_clean_label.R")
 ```
 
 ```{r setup, include=FALSE}
@@ -42,8 +42,7 @@ options(scipen = 999)
 # data_purchase <- data.frame()
 # # exclude outliers
 # appliances <- appliances %>% filter((study_ID %in% c('117','122', '138','518')))
-# # 117 exclude Houde & Aldy (2014) as a pre-print of Houde & Aldy (2017)
-# # 122 exclude Caroll et al. (2016) as there is no control (comparison of 2 different label configurations)
+
 # # include WTP and purchase probability together
 # data_purchase <- appliances %>%
 #   filter(dep_variable_purchase_category %in% c("purschase (probability) of efficient appliance", "purchase (probability) of efficient appliance", "WTP for efficient appliance"))
@@ -59,13 +58,6 @@ options(scipen = 999)
 # data_purchase$information <- case_when(
 #   data_purchase$information == 1 & data_purchase$label == 1 ~ 0,
 #   TRUE ~ data_purchase$information)
-
-data_purchase <- data_purchase %>%
-  filter(!(study_ID %in% c('118') & coder == "DD"))
-data_purchase <- data_purchase %>%
-  filter(!intervention == "Command & Control")
-data_purchase <- data_purchase %>%
-  filter(!(study_ID %in% c('511')))
 
 table(data_purchase$appliance)
 table(data_purchase$intervention)
@@ -96,17 +88,18 @@ print(length(unique(data_purchase$study_ID)))
 # # random effects by appliance
 
 ### MULTI-LEVEL MODEL ###
-meta_model0 <-rma.mv(z_value, z_variance, # add all moderator variables
+meta_model0 <-rma.mv(z_value, z_variance, 
                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_model0, digits = 2)
 
 meta_model5 <- rma.mv(z_value, z_variance, mods =  ~ information+label+loan+rebate+subsidy+0,
                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_model5)
+summary(meta_model5, digits = 2)
 # random effects multi-level by intervention
 
 meta_model6 <- rma.mv(z_value, z_variance, mods =  ~ appliance+0,
                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_model6)
+summary(meta_model6, digits = 2)
 # random effects by appliance
 
 ### INTERACTION INTERVENTION X APPLIANCE ###
@@ -115,12 +108,12 @@ data_purchase1 <- data_purchase %>%
 
 meta_model7 <- rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0, 
                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase1, method = "REML")
-summary(meta_model7)
+summary(meta_model7, digits = 2)
 # random effects multi-level interaction between intervention category and appliance
 ```
 
 
-```{r forest plot}
+```{r forest plot, eval=FALSE}
 ### AVERAGE EFFECT PLOT ### 
 coef_summary5 <- coef(summary(meta_model5))
 rownames(coef_summary5) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 12)","Rebate \n(n = 31)","Subsidy \n(n = 27)")
@@ -163,7 +156,7 @@ ggsave("revisedint_appliances_forest_6.png")
 ```
 
 
-```{r extra graphs}
+```{r extra graphs, eval=FALSE}
 ### FREQUENCY TABLES AND DISTRIBUTIONS
 ggplot(data_purchase, aes(x = z_value, y = z_variance , colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
@@ -174,7 +167,7 @@ ggplot(data_purchase, aes(x = z_value, y = z_variance , colour = appliance)) +
   theme_bw()
 ```
 
-```{r extra graphs}
+```{r extra graphs, eval=FALSE}
 ggplot(data_purchase, aes(x = year_data_study, y = z_value, colour = appliance)) +
   # scale_y_continuous(limits = c(-0.05,.5))+
   geom_point(size = 2, alpha = 0.25) +
@@ -183,7 +176,7 @@ ggplot(data_purchase, aes(x = year_data_study, y = z_value, colour = appliance))
   theme_bw()
 ```
 
-```{r extra graphs}
+```{r extra graphs, eval=FALSE}
 # Effect level analysis 
 
 ggplot(data_purchase, aes(x = z_value, y = intervention, colour = intervention)) +
@@ -240,7 +233,7 @@ funnel(
   legend = FALSE # We'll create the legend manually
 )
 
-# # causes error -- Tarun -- you need to run the plot and the legend at the same time rather than consecutively
+# # causes error - you need to run the plot and the legend at the same time rather than consecutively
 # Create the legend manually using the legend() function
 legend("topright", # Position of the legend
        legend = levels(as.factor(data_purchase$appliance)), # Legend labels
@@ -269,7 +262,6 @@ funnel(
   legend = FALSE # We'll create the legend manually
 )
 
-# # causes error -- Tarun
 # Create the legend manually using the legend() function
 legend("topright", # Position of the legend
        legend = levels(as.factor(data_purchase$intervention_category)), # Legend labels
@@ -281,33 +273,38 @@ legend("topright", # Position of the legend
 
 data_purchase$se = (data_purchase$z_variance)^(1/2)
 
-meta <-rma.mv(z_value, z_variance, # add all moderator variables
-                     random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta)
-meta_egger <-rma.mv(z_value, z_variance, mods =  ~ se, # add all moderator variables
-                           random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_egger)
+# Model without publication bias correction
+meta_model0 <-rma.mv(z_value, z_variance, 
+                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_model0, digits = 2)
 
+# Egger's test
+meta_egger <-rma.mv(z_value, z_variance, mods =  ~ se, 
+                           random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_egger, digits = 2)
 
 meta_egger1 <-rma.mv(z_value, z_variance, mods =  ~ 0+ information+label+loan+rebate+subsidy+se,
                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_egger1)
+summary(meta_egger1, digits = 2)
+
 meta_egger2_2 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+se,
                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_egger2_2)
+summary(meta_egger2_2, digits = 2)
 
 
 # bias correction
 
-meta_egger_1 <-rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moderator variables
+meta_model0_1 <-rma.mv(z_value, z_variance, mods =  ~z_variance , 
                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_egger_1)
-meta_egger3 <-rma.mv(z_value, z_variance, mods =  ~ 0+information+label+loan+rebate+subsidy+z_variance, 
-                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_egger3)
-meta_egger4 <-rma.mv(z_value, z_variance, mods =  ~ 0+appliance+z_variance, 
-                            random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-summary(meta_egger4)
+summary(meta_model0_1, digits = 2)
+
+meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~  information+label+loan+rebate+subsidy+0+z_variance,
+                              random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_model5_1, digits = 2)
+
+meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
+                       random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
+summary(meta_model6_1, digits = 2)
 
 
 ```
@@ -316,9 +313,9 @@ summary(meta_egger4)
 # these thresholds are identified by looking at the graphs and identifying the peaks
 
 # intervention model
-# x5 <- cooks.distance(meta_model5)
+x5 <- cooks.distance(meta_model5)
 
-threshold <- .3
+threshold <- .2
 plot(x5, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 for (i in 1:length(x5)) {
   if (x5[i] > threshold) {
@@ -336,9 +333,9 @@ above_threshold_rows5 <- which(x5 > threshold)
 outlier_cooksd5 <- data_purchase[above_threshold_rows5,]
 
 # # appliance model
-# x6 <- cooks.distance(meta_model6)
+x6 <- cooks.distance(meta_model6)
 
-threshold <- .3
+threshold <- .2
 plot(x6, type="l", pch=19, xlab="Observed Outcome", ylab="Cook's Distance")
 for (i in 1:length(x6)) {
   if (x6[i] > threshold) {
@@ -361,32 +358,21 @@ outlier_cooksd6 <- data_purchase[above_threshold_rows6,]
 ```{r test models without outliers}
 ### TESTING MODELS WITHOUT OUTLIERS & PUBLICATION BIAS ###
 
-# meta_model5_1 <-rma.mv(z_value, z_variance, mods =  ~  information+label+loan+rebate+subsidy+0+z_variance,
-#                               random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-# summary(meta_model5_1)
-# 
-# meta_model6_1 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
-#                        random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase, method = "REML")
-# summary(meta_model6_1)
-
-# both categories equally effective
-
 data_purchase2 <- data_purchase %>%
   filter(! sr_no %in% outlier_cooksd5$sr_no) %>%
-  filter(! sr_no %in% outlier_cooksd6$sr_no) #%>%
-#  filter(appliance %in% c("Air-Conditioner", "Lighting","Refrigerator","Washing Machine"))
+  filter(! sr_no %in% outlier_cooksd6$sr_no) 
 
-# meta_model7 <-rma.mv(z_value, z_variance, mods =  ~ intervention_category:appliance+0+z_variance,
-#                      random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
-# summary(meta_model7)
-
-meta_model8 <-rma.mv(z_value, z_variance, mods =  ~z_variance , # add all moderator variables
+meta_model0_2 <-rma.mv(z_value, z_variance, mods =  ~z_variance , 
                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
-summary(meta_model8)
+summary(meta_model0_2, digits = 2)
 
-meta_model8_1 <-rma.mv(z_value, z_variance, mods =  ~information+label+loan+rebate+subsidy+0+z_variance , # add all moderator variables
+meta_model5_2 <-rma.mv(z_value, z_variance, mods =  ~information+label+loan+rebate+subsidy+0+z_variance ,
                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
-summary(meta_model8_1)
+summary(meta_model5_2, digits = 2)
+
+meta_model6_2 <-rma.mv(z_value, z_variance, mods = ~ appliance+0+z_variance,
+                       random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+summary(meta_model6_2, digits = 2)
 
 table(data_purchase2$intervention)
 table(data_purchase2$appliance)
@@ -443,63 +429,225 @@ table(data_purchase2$appliance)
 ```{r forest plot}
 ### AVERAGE EFFECT PLOT ### 
 table(data_purchase2$appliance)
-coef_summary5_1 <- coef(summary(meta_model5_1))[-6,]
+coef_summary5_2 <- coef(summary(meta_model5_2))[-6,]
 
-rownames(coef_summary5_1) <- c("Information \n(n = 53)","Label \n(n = 126)","Loan \n(n = 9)","Rebate \n(n = 27)","Subsidy \n(n = 27)")
+rownames(coef_summary5_2) <- c("Information \n(n = 53)","Label \n(n = 131)","Loan \n(n = 8)","Rebate \n(n = 30)","Subsidy \n(n = 30)") 
 
-average_estimate5_1 <- coef(meta_egger_1)[1]
+average_estimate5_2 <- coef(meta_model0_2)[1]
 #average_estimate5_1 <- mean(coef_summary5_1$estimate)
-ggplot(coef_summary5_1,
-       aes(x = row.names(coef_summary5_1), y = estimate)) +
+
+ggplot(coef_summary5_2,
+       aes(x = row.names(coef_summary5_2), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate5_1, linetype = "dashed", color = "black", size = .5) +
+  geom_hline(yintercept = average_estimate5_2, linetype = "dashed", color = "black", size = .5) +
   geom_hline(yintercept = 0, color = "gray", size = .5)+
-  annotate("text", x = 3.5, y = average_estimate5_1 - 0.025, label = paste("Average:", round(average_estimate5_1, 2)), size = 4.5) +
+  annotate("text", x = 3.5, y = average_estimate5_2 - 0.025, label = paste("Average:", round(average_estimate5_2, 2)), size = 4.5) +
   # scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-  ylim(-.4, 0.4)+
+  ylim(-.3, 0.3)+
   theme_bw() +
   theme(text = element_text(size = 16))
 ggsave("interventions_forest_5_1_avME_1.png", height=6, width=9)
 
-coef_summary8 <- coef(summary(meta_model8_1))[-6,]
-rownames(coef_summary8) <- c("Information \n(n = 53)","Label \n(n = 135)","Loan \n(n = 9)","Rebate \n(n = 30)","Subsidy \n(n = 30)")
-average_estimate8 <- mean(coef_summary8$estimate)
-
-ggplot(coef_summary8,
-       aes(x = row.names(coef_summary8), y = estimate)) +
+coef_summary6_2 <- coef(summary(meta_model6_2))[-10,]
+rownames(coef_summary6_2) <- c("Air-Conditioner \n(n = 35)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 21)","Lighting \n(n = 34)","Refrigerator \n(n = 69)","TV \n(n = 12)","Washing Machine \n(n = 17)","Water Heater \n(n = 43)")
+average_estimate6_2 <- mean(coef_summary6_2$estimate)
+ggplot(coef_summary6_2,
+       aes(x = row.names(coef_summary6_2), y = estimate)) +
   geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
                  size = 1.5, alpha = 1, colour = "red")  +
   geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate5_1, linetype = "dashed", color = "black", size = .5) +
+  geom_hline(yintercept = average_estimate5_2, linetype = "dashed", color = "black", size = .5) +
   geom_hline(yintercept = 0, color = "gray", size = .5)+
-  annotate("text", x = 3.5, y = average_estimate5_1 - 0.025, label = paste("Average:", round(average_estimate5_1, 2)), size = 4.5) +
+  annotate("text", x = 6, y = average_estimate5_2 - 0.025, label = paste("Average:", round(average_estimate5_2, 2)), size = 4.5, vjust=1) +
   # scale_y_continuous(limits = c(-0.15, 0.35)) +
   labs(x = "", y = "z-value") +
-  ylim(-.4, 0.4)+
+  ylim(-.3, 0.3)+
   theme_bw() +
-  theme(text = element_text(size = 16))
-ggsave("revisedinterventions_forest_8_1_avME_1.png", height=6, width=9)
-
-coef_summary6_1 <- coef(summary(meta_model6_1))[-10,]
-rownames(coef_summary6_1) <- c("Air-Conditioner \n(n = 34)","Clothes Dryer \n(n = 19)","Dishwasher \n(n = 4)","Heat Pump \n(n = 21)","Lighting \n(n = 34)","Refrigerator \n(n = 72)","TV \n(n = 12)","Washing Machine \n(n = 18)","Water Heater \n(n = 43)")
-average_estimate6_1 <- mean(coef_summary6_1$estimate)
-ggplot(coef_summary6_1,
-       aes(x = row.names(coef_summary6_1), y = estimate)) +
-  geom_linerange(aes(ymin = ci.lb, ymax = ci.ub),
-                 size = 1.5, alpha = 1, colour = "red")  +
-  geom_point(size = 3) +
-  geom_hline(yintercept = average_estimate5_1, linetype = "dashed", color = "black", size = .5) +
-  geom_hline(yintercept = 0, color = "gray", size = .5)+
-  annotate("text", x = 6, y = average_estimate5_1 - 0.025, label = paste("Average:", round(average_estimate5_1, 2)), size = 4.5, vjust=1) +
-  # scale_y_continuous(limits = c(-0.15, 0.35)) +
-  labs(x = "", y = "z-value") +
-  ylim(-.4, 0.4)+
-  theme_bw() +
-  theme(text = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  theme(text = element_text(size = 14)) + theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust=1))
 ggsave("revisedint_appliances_forest_6_1_avME_1.png", height=6, width=9)
+```
+
+```{r sensitivity check for R&R}
+
+# meta_model5_3 <-rma.mv(z_value, z_variance, mods =  ~z_variance + study_design,
+#                             random = ~ as.factor(sr_no) | as.factor(study_ID), data = data_purchase2, method = "REML")
+# summary(meta_model5_3, digits = 2)
+
+# Make sure study_design is a factor
+# data_purchase2$study_design <- factor(
+#   data_purchase2$study_design,
+#   levels = c("control_&_treatment", 
+#              "DID", 
+#              "pre_and_post", 
+#              "quasi-experimental", 
+#              "simulated_counterfactual")
+# )
+
+study_designs <- levels(data_purchase2$study_design)
+
+results <- list()
+
+for (design in study_designs) {
+  cat("\nProcessing study_design =", design, "\n")
+  
+  subset_data <- droplevels(subset(data_purchase2, study_design == design))
+  
+  if (nrow(subset_data) > 1) {
+    meta_model <- tryCatch({
+      rma.mv(z_value, z_variance,
+             # mods = ~ z_variance,
+             random = ~ as.factor(sr_no) | as.factor(study_ID),
+             data = subset_data,
+             method = "REML")
+    }, error = function(e) {
+      cat("Error for", design, ":", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(meta_model)) {
+      # Extract coefficient table
+      coef_table <- coef(summary(meta_model, digits = 2))
+      coef_df <- data.frame(
+        study_design = design,
+        k            = summary(meta_model)$k,
+        estimate     = coef_table[, "estimate"],
+        se           = coef_table[, "se"],
+        zval         = coef_table[, "zval"],
+        pval         = coef_table[, "pval"],
+        ci.lb        = coef_table[, "ci.lb"],
+        ci.ub        = coef_table[, "ci.ub"]
+      )
+      results[[design]] <- coef_df
+    }
+  }
+}
+
+# Combine all results into one tidy table
+final_results <- bind_rows(results)
+
+
+# Round numeric columns to 2 decimals
+final_results <- final_results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+print(final_results)
+write.table(final_results,"Study_designsensitivity.csv")
+
+
+
+```
+
+
+```{r sensitivity check for R&R}
+
+# Fit the overall model including reportingBiases
+bias_levels <- levels(data_purchase2$reportingBiases)
+
+results <- list()
+
+for (bias in bias_levels) {
+  cat("\nProcessing reportingBiases =", bias, "\n")
+  
+  subset_data <- droplevels(subset(data_purchase2, reportingBiases == bias))
+  
+  if (nrow(subset_data) > 1) {
+    meta_model <- tryCatch({
+      rma.mv(z_value, z_variance,
+             # mods = ~ z_variance,
+             random = ~ as.factor(sr_no) | as.factor(study_ID),
+             data = subset_data,
+             method = "REML")
+    }, error = function(e) {
+      cat("Error for", bias, ":", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(meta_model)) {
+      # Extract coefficient table
+      coef_table <- coef(summary(meta_model, digits = 2))
+      coef_df <- data.frame(
+        reportingBiases = bias,
+        k               = summary(meta_model)$k,
+        estimate        = coef_table[, "estimate"],
+        se              = coef_table[, "se"],
+        zval            = coef_table[, "zval"],
+        pval            = coef_table[, "pval"],
+        ci.lb           = coef_table[, "ci.lb"],
+        ci.ub           = coef_table[, "ci.ub"]
+      )
+      results[[bias]] <- coef_df
+    }
+  }
+}
+
+# Combine all results into one tidy table
+final_results <- bind_rows(results)
+
+# Round numeric columns to 2 decimals
+final_results <- final_results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+print(final_results)
+write.table(final_results, "ReportingBiasesSensitivity.csv")
+
+```
+
+
+```{r sensitivity check for R&R}
+
+# Fit the overall model including incentivefollowthrough
+incentive_levels <- levels(data_purchase2$incentive_follow_through)
+
+results <- list()
+
+for (incentive in incentive_levels) {
+  cat("\nProcessing incentivefollowthrough =", incentive, "\n")
+  
+  subset_data <- droplevels(subset(data_purchase2, incentive_follow_through == incentive))
+  
+  if (nrow(subset_data) > 1) {
+    meta_model <- tryCatch({
+      rma.mv(z_value, z_variance,
+             # mods = ~ z_variance,
+             random = ~ as.factor(sr_no) | as.factor(study_ID),
+             data = subset_data,
+             method = "REML")
+    }, error = function(e) {
+      cat("Error for", incentive, ":", e$message, "\n")
+      return(NULL)
+    })
+    
+    if (!is.null(meta_model)) {
+      # Extract coefficient table
+      coef_table <- coef(summary(meta_model, digits = 2))
+      coef_df <- data.frame(
+        incentive_follow_through = incentive,
+        k               = summary(meta_model)$k,
+        estimate        = coef_table[, "estimate"],
+        se              = coef_table[, "se"],
+        zval            = coef_table[, "zval"],
+        pval            = coef_table[, "pval"],
+        ci.lb           = coef_table[, "ci.lb"],
+        ci.ub           = coef_table[, "ci.ub"]
+      )
+      results[[incentive]] <- coef_df
+    }
+  }
+}
+
+# Combine all results into one tidy table
+final_results <- bind_rows(results)
+
+# Round numeric columns to 2 decimals
+final_results <- final_results %>%
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+
+print(final_results)
+write.table(final_results, "IncentiveFollowthroughSensitivity.csv")
+
 ```
 
 ```{r prepare for BMA}
@@ -524,7 +672,8 @@ controlvars <- c(
   "reportingBiases",
   "controls_energy_prices",
   "controls_environmental_attitudes",
-  "controls_demographics")
+  "controls_demographics"
+  )
 
 metregvar <- c("z_value", "z_variance")
 dfbms <- data_purchase  %>% select(all_of(metregvar))
@@ -571,16 +720,18 @@ coef <- as.data.frame(coef(percent, order.by.pip = T, exact=T, yprop2pip=T, incl
 # image(percent, yprop2pip=FALSE, order.by.pip=T, do.par=TRUE, do.grid=TRUE, do.axis=TRUE, cex.axis = 0.7)
 # summary(percent)
 
-# coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
-# coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
-# coeff <- cbind(coef, coef1, coef2)
-# print(coeff)
+coef1 <- as.data.frame(coef(percent1, order.by.pip = F, exact=T, include.constant=T))
+coef2 <- as.data.frame(coef(percent2, order.by.pip = F, exact=T, include.constant=T))
+coeff <- cbind(coef, coef1, coef2)
+print(coeff)
 write.table(coeff,"BMA_estimates.csv")
 
 # col<- colorRampPalette(c("red", "white", "blue"))
 # M <- cor(dfbms)
 # corrplot.mixed(M, lower = "number", upper = "circle", lower.col=col(200), upper.col=col(200), tl.pos = c("lt"), diag = c("u"), tl.col="black", tl.srt=45, tl.cex=0.85, number.cex = 0.5, cl.cex=0.8, cl.ratio=0.1)
+```
 
+```{r}
 ############## ROBUSTNESS CHECKS  OLS-Frequentist###################################################
 
 levels(data_purchase$intervention) <- gsub(" ", "_", levels(data_purchase$intervention))
@@ -592,17 +743,40 @@ levels(data_purchase$reportingBiases) <- gsub(" ", "_", levels(data_purchase$rep
 levels(data_purchase$outOfSampleBias) <- gsub(" ", "_", levels(data_purchase$outOfSampleBias))
 levels(data_purchase$study_design) <- gsub(" ", "_", levels(data_purchase$study_design))
 
-data_purchase$participant_type1 <- relevel(data_purchase$participant_type, ref = "residents")
+data_purchase$participant_type1 <- relevel(data_purchase$participant_type, ref = "unspecified")
 # data_purchase$intervention1 <- relevel(data_purchase$intervention, ref = "Rebate")
 data_purchase$appliance1 <- relevel(data_purchase$appliance, ref = "Refrigerator")
+
+data_purchase$year_data_study1 <- ifelse(data_purchase$year_data_study >= 2000, 1, 0)
+data_purchase$decade <- floor(data_purchase$year_data_study / 10) * 10
+data_purchase$decade <- as.factor(data_purchase$decade)
+data_purchase$decade <- relevel(data_purchase$decade, ref = "2000")
 
 # levels(data_purchase$intervention1)[levels(data_purchase$intervention1) %in% c("Information", "Label")] <- "Info"
 
 topmod<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incentive_follow_through+reportingBiases+
-              participant_type1+outOfSampleBias#+statistical_technique
+              participant_type1+outOfSampleBias 
             
             ,data = data_purchase)
-coeff_top<- coef_test(topmod, vcov = "CR1", cluster = data_purchase$study_ID, test = "naive-t")
+
+plot(topmod, which = 4)
+cooksD <- cooks.distance(topmod)
+threshold <- 4/length(cooksD)
+influential_obs <- which(cooksD > threshold)
+data_purchase3 <- data_purchase[-influential_obs, ]
+
+
+topmod1<- lm(z_value ~ z_variance+label+loan+rebate+subsidy+ appliance1+ incentive_follow_through+reportingBiases+
+              participant_type1+outOfSampleBias
+            
+            ,data = data_purchase3)
+
+coeff_top<- coef_test(topmod1, vcov = "CR1", cluster = data_purchase3$study_ID, test = "naive-t", round = 2)
+results_rounded <- data.frame(lapply(coeff_top, function(x) 
+                                     if(is.numeric(x)) round(x, 2) else x))
+
+print(results_rounded)
+
 
 write.table(coeff_top,"Fcheck.csv")
 
